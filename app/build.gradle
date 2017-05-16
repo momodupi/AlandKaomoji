@@ -4,17 +4,24 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
-        applicationId "momodupi.alandkaomoji"
+        applicationId "alandkaomoji"
         minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
-        versionName "1.1"
+        versionName "1.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            output.outputFile = new File(output.outputFile.parent, defaultConfig.applicationId + "-v" +
+                    defaultConfig.versionName + ".apk" );
         }
     }
 }
