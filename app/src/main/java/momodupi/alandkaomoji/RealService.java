@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -25,9 +26,6 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -57,7 +55,7 @@ public class RealService extends Service {
     ClipboardManager clipbrd;
     ClipData clipData;
 
-    private boolean moveflag = false, hideflag = false, dragflag = false;
+    private boolean moveflag = false, hideflag = false, dragflag = false, scrollheadflag = false;
     private int menusts = 0;
     public final static int WM_MWNU = 0;
     public final static int ST_MENU = 1;
@@ -109,19 +107,14 @@ public class RealService extends Service {
         transseekBar.setProgress(50);
         brifetextView = (TextView) wmlayout.findViewById(R.id.brifetextView);
 
-        SharedPreferences preferences = getSharedPreferences("kaomojifreqlist", MODE_PRIVATE);
-        transsetting = preferences.getFloat("transsetting", 0);
+        SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
+        transsetting = preferences.getFloat("transsetting", 50);
         transseekBar.setProgress((int) transsetting);
 
-        String json = preferences.getString("kaomojifreq", null);
-        if (json != null) {
-            Gson gson = new Gson();
-            Type type = new TypeToken<List<String>>(){}.getType();
-            List<String> rjson = gson.fromJson(json, type);
-            data = rjson;
-        }
-        else {
-            data = getkaomojilist();
+        data = new ArrayList<String>();
+        int kaonum = preferences.getInt("kaonum", 87);
+        for (int cnt = 0; cnt < kaonum; cnt++) {
+            data.add(preferences.getString("kao" + String.valueOf(cnt), null));
         }
 
         arrayAdapter = new ArrayAdapter<String>(this, R.layout.service_item, data);
@@ -206,11 +199,13 @@ public class RealService extends Service {
         closebutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences.Editor editor = getSharedPreferences("kaomojifreqlist", MODE_PRIVATE).edit();
-                Gson gson = new Gson();
-                String json = gson.toJson(data);
-                editor.putString("kaomojifreq", json);
-                editor.commit();
+                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
+
+                int cnt;
+                for (cnt = 0; cnt < data.size(); cnt++) {
+                    editor.putString("kao" + String.valueOf(cnt), data.get(cnt).toString());
+                }
+                editor.putInt("kaonum", cnt);
                 editor.putFloat("transsetting", transsetting);
                 editor.commit();
 
@@ -225,7 +220,7 @@ public class RealService extends Service {
 
                 clipData = ClipData.newPlainText("kao", str);
                 clipbrd.setPrimaryClip(clipData);
-
+/**/
                 sethideinterface();
                 moveflag = false;
 
@@ -238,7 +233,7 @@ public class RealService extends Service {
                 listView.setAdapter(arrayAdapter);
             }
         });
-
+/**/
         listView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -250,16 +245,16 @@ public class RealService extends Service {
                     }
                     break;
                     case MotionEvent.ACTION_MOVE: {
-                        if ((listdrag - event.getRawY()) != 0) {
+                        if ((event.getRawY() - listdrag) > 0) {
                             dragflag = true;
                         }
                     }
                     break;
                     case MotionEvent.ACTION_UP: {
-                        if (dragflag == true) {
+                        if ((dragflag == true) && (scrollheadflag == true)) {
                             setsettinginterface();
-                            dragflag = false;
                         }
+                        dragflag = false;
                     }
                     break;
                     default: {
@@ -267,6 +262,23 @@ public class RealService extends Service {
                     }
                 }
                 return false;
+            }
+        });
+
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if (firstVisibleItem == 0) {
+                    scrollheadflag = true;
+                }
+                else {
+                    scrollheadflag = false;
+                }
             }
         });
 
@@ -309,6 +321,7 @@ public class RealService extends Service {
         wmParams.width = dip2px(getApplicationContext(), 96);
         wmParams.height = dip2px(getApplicationContext(), 270);
         wmlayout.setAlpha(1);
+        listView.setSelection(0);
         listView.setVisibility(View.VISIBLE);
         transtextView.setVisibility(View.GONE);
         transseekBar.setVisibility(View.GONE);
