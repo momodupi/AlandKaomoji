@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.IBinder;
+import android.view.DragEvent;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -19,6 +21,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -33,22 +38,41 @@ import java.util.List;
  * Created by 40910 on 2017/5/15.
  */
 
+
 public class RealService extends Service {
 
     LinearLayout wmlayout;
+
     WindowManager.LayoutParams wmParams;
     WindowManager mWindowManager;
 
     Button movebutton, closebutton;
+    TextView transtextView, brifetextView;
+    SeekBar transseekBar;
 
     ArrayAdapter<String> arrayAdapter;
     List<String> data;
     ListView listView;
 
-    private boolean moveflag = false, hideflag = false;
+    ClipboardManager clipbrd;
+    ClipData clipData;
+
+    private boolean moveflag = false, hideflag = false, dragflag = false;
+    private int menusts = 0;
+    public final static int WM_MWNU = 0;
+    public final static int ST_MENU = 1;
+    public final static int HD_MENU = 2;
+
     private int orirawx = 0, orirawy = 0;
-    private short clickcnt = 0;
+    private int listdrag = 0;
+
     private String butstr;
+
+    private int curPower = 0;
+    float transsetting = 1;
+
+    private static String[] btykao_expd = {"(|||ﾟдﾟ)", "( ´_ゝ`)", "(　ﾟ 3ﾟ)", "( ﾟ∀ﾟ)", "( ﾟ∀ﾟ)"};
+    private static String[] btykao_hide = {"|дﾟ )", "|д` )", "|-` )", "|∀` )", "|∀` )"};
 
     @Override
     public void onCreate()
@@ -61,7 +85,7 @@ public class RealService extends Service {
         wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         wmParams.gravity = Gravity.LEFT | Gravity.TOP;
         wmParams.x = 800;
-        wmParams.y = 800;
+        //wmParams.y = 800;
         wmParams.width = dip2px(getApplicationContext(), 96);
         wmParams.height = dip2px(getApplicationContext(), 270);
         orirawx = wmParams.x;
@@ -69,21 +93,31 @@ public class RealService extends Service {
 
         LayoutInflater inflater = LayoutInflater.from(getApplication());
         wmlayout = (LinearLayout) inflater.inflate(R.layout.service_wm, null);
+
         mWindowManager.addView(wmlayout, wmParams);
+
+        clipbrd = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
 
         listView = (ListView) wmlayout.findViewById(R.id.listView);
         movebutton = (Button) wmlayout.findViewById(R.id.moveBtn);
 
         closebutton = (Button) wmlayout.findViewById(R.id.closeBtn);
-        closebutton.setText("x");
+
+        transtextView = (TextView) wmlayout.findViewById(R.id.transtextView);
+        transseekBar = (SeekBar) wmlayout.findViewById(R.id.transseekBar);
+        transseekBar.setMax(100);
+        transseekBar.setProgress(50);
+        brifetextView = (TextView) wmlayout.findViewById(R.id.brifetextView);
 
         SharedPreferences preferences = getSharedPreferences("kaomojifreqlist", MODE_PRIVATE);
+        transsetting = preferences.getFloat("transsetting", 0);
+        transseekBar.setProgress((int) transsetting);
+
         String json = preferences.getString("kaomojifreq", null);
         if (json != null) {
             Gson gson = new Gson();
             Type type = new TypeToken<List<String>>(){}.getType();
-            List<String> rjson = new ArrayList<String>();
-            rjson = gson.fromJson(json, type);
+            List<String> rjson = gson.fromJson(json, type);
             data = rjson;
         }
         else {
@@ -100,14 +134,10 @@ public class RealService extends Service {
         BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-
-                String[] btykao_expd = {"(|||ﾟдﾟ)", "( ´_ゝ`)", "(　ﾟ 3ﾟ)", "( ﾟ∀ﾟ)", "( ﾟ∀ﾟ)"};
-                String[] btykao_hide = {"|дﾟ )", "|д` )", "|-` )", "|∀` )", "|∀` )"};
-
                 if(Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())){
                     int level = intent.getIntExtra("level", 0);
                     int scale = intent.getIntExtra("scale", 100);
-                    int curPower = (level * 100 / scale) / 25;
+                    curPower = (level * 100 / scale) / 25;
                     if (hideflag == false) {
                         movebutton.setText(btykao_expd[curPower]);
                     }
@@ -132,24 +162,9 @@ public class RealService extends Service {
                         orirawx = (int) event.getRawX();
                         orirawy = (int) event.getRawY();
 
-                        clickcnt += 1;
-                        if (clickcnt == 2)
-                        {
-                            clickcnt = 0;
-                            Toast.makeText(RealService.this, "powered by momodupi", Toast.LENGTH_SHORT).show();
-                        }
-
                         if (moveflag == false) {
                             wmParams.x = orirawx - (int) event.getX();
-                            wmParams.y = orirawy - (int) event.getY();
-
-                            wmParams.width = dip2px(getApplicationContext(), 96);
-                            wmParams.height = dip2px(getApplicationContext(), 270);
-                            wmlayout.setAlpha((float)1);
-                            listView.setVisibility(v.VISIBLE);
-                            mWindowManager.updateViewLayout(wmlayout, wmParams);
-                            hideflag = false;
-                            moveflag = true;
+                            //wmParams.y = orirawy - (int) event.getY();
                         }
 
                         butstr = (String) movebutton.getText();
@@ -163,18 +178,27 @@ public class RealService extends Service {
                         orirawx = (int) event.getRawX();
                         orirawy = (int) event.getRawY();
 
-                        clickcnt = 0;
+                        moveflag = true;
                     }
                     break;
                     case MotionEvent.ACTION_UP: {
                         movebutton.setText(butstr);
+
+                        if (moveflag == false) {
+                            if(menusts == HD_MENU) {
+                                setnormalinterface();
+                            }
+                            else {
+                                sethideinterface();
+                            }
+                        }
+                        moveflag = false;
                     }
                     break;
                     default: {
                         ;
                     }
                 }
-
                 return false;
             }
         });
@@ -182,11 +206,12 @@ public class RealService extends Service {
         closebutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 SharedPreferences.Editor editor = getSharedPreferences("kaomojifreqlist", MODE_PRIVATE).edit();
                 Gson gson = new Gson();
                 String json = gson.toJson(data);
                 editor.putString("kaomojifreq", json);
+                editor.commit();
+                editor.putFloat("transsetting", transsetting);
                 editor.commit();
 
                 stopSelf();
@@ -198,25 +223,11 @@ public class RealService extends Service {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String str = arrayAdapter.getItem((int) id).toString();
 
-                ClipboardManager clipbrd = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clipData;
                 clipData = ClipData.newPlainText("kao", str);
                 clipbrd.setPrimaryClip(clipData);
 
-                //movebutton.setText(str);
-
-                //closebutton.setVisibility(view.GONE);
-
-                //movebutton.setWidth(dip2px(getApplicationContext(), 32));
-                //movebutton.setHeight(dip2px(getApplicationContext(), 32));
-                movebutton.setText("|∀` )");
-
-                wmParams.x = 8000;  //force
+                sethideinterface();
                 moveflag = false;
-                wmlayout.setAlpha((float)0.5);
-                wmParams.width = dip2px(getApplicationContext(), 60);
-                wmParams.height = dip2px(getApplicationContext(), 36);
-                mWindowManager.updateViewLayout(wmlayout, wmParams);
 
                 Collections.reverse(data);
                 data.remove(str);
@@ -225,12 +236,57 @@ public class RealService extends Service {
                 arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.service_item, data);
 
                 listView.setAdapter(arrayAdapter);
-                listView.setVisibility(view.GONE);
-                hideflag = true;
+            }
+        });
+
+        listView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN: {
+                        listdrag = (int) event.getRawY();
+                        dragflag = false;
+                    }
+                    break;
+                    case MotionEvent.ACTION_MOVE: {
+                        if ((listdrag - event.getRawY()) != 0) {
+                            dragflag = true;
+                        }
+                    }
+                    break;
+                    case MotionEvent.ACTION_UP: {
+                        if (dragflag == true) {
+                            setsettinginterface();
+                            dragflag = false;
+                        }
+                    }
+                    break;
+                    default: {
+                        ;
+                    }
+                }
+                return false;
+            }
+        });
+
+        transseekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                transsetting = (float) progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
     }
-
 
     @Override
     public IBinder onBind(Intent intent)
@@ -241,7 +297,6 @@ public class RealService extends Service {
     @Override
     public void onDestroy()
     {
-        // TODO Auto-generated method stub
         if(wmlayout != null)
         {
             //移除悬浮窗口
@@ -250,12 +305,61 @@ public class RealService extends Service {
         super.onDestroy();
     }
 
-    public int dip2px(Context context, float dpValue) {
+    private void setnormalinterface() {
+        wmParams.width = dip2px(getApplicationContext(), 96);
+        wmParams.height = dip2px(getApplicationContext(), 270);
+        wmlayout.setAlpha(1);
+        listView.setVisibility(View.VISIBLE);
+        transtextView.setVisibility(View.GONE);
+        transseekBar.setVisibility(View.GONE);
+        brifetextView.setVisibility(View.GONE);
+        mWindowManager.updateViewLayout(wmlayout, wmParams);
+
+        movebutton.setText(btykao_expd[curPower]);
+        menusts = WM_MWNU;
+    }
+
+    private void sethideinterface() {
+        wmParams.x = 8000;
+
+        wmlayout.setAlpha(transsetting / 100);
+        wmParams.width = dip2px(getApplicationContext(), 60);
+        wmParams.height = dip2px(getApplicationContext(), 36);
+
+        listView.setVisibility(View.GONE);
+        transtextView.setVisibility(View.GONE);
+        transseekBar.setVisibility(View.GONE);
+        brifetextView.setVisibility(View.GONE);
+
+        mWindowManager.updateViewLayout(wmlayout, wmParams);
+
+        movebutton.setText(btykao_hide[curPower]);
+        menusts = HD_MENU;
+    }
+
+    private void setsettinginterface() {
+        wmParams.width = dip2px(getApplicationContext(), 96);
+        wmParams.height = dip2px(getApplicationContext(), 270);
+        wmlayout.setAlpha(1);
+
+        listView.setVisibility(View.GONE);
+        transtextView.setVisibility(View.VISIBLE);
+        transseekBar.setVisibility(View.VISIBLE);
+        brifetextView.setVisibility(View.VISIBLE);
+
+        mWindowManager.updateViewLayout(wmlayout, wmParams);
+
+        movebutton.setText(btykao_expd[curPower]);
+        menusts = ST_MENU;
+    }
+
+
+    private int dip2px(Context context, float dpValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
 
-    public int px2dip(Context context, float pxValue) {
+    private int px2dip(Context context, float pxValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (pxValue / scale + 0.5f);
     }

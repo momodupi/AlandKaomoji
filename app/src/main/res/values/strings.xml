@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">A岛颜文字</string>
+
+    <string name="servicesetting">后台</string>
+
+    <string name="brife">(σﾟ∀ﾟ)σ Powered by momodupi</string>
+
+    <string name="transsetting">透明度</string>
 </resources>
