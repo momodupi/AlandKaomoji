@@ -8,5 +8,7 @@ Due to the API level and minimizing the size of apk, Only support Android 5.0 or
 OVERLAY_PERMISSION needed on Android 6.0 or above. </br>
 
 ## Change Log
-### 2017.2.20
+### 2017.5.15
 1. First version </br>
+### 2017.5.16
+1. Add setting menu and new touch policy </br>
