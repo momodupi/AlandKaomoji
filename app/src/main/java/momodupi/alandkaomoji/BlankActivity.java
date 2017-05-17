@@ -37,6 +37,7 @@ public class BlankActivity extends Activity {
                 }
                 editor.putInt("kaonum", cnt);
                 editor.putFloat("transsetting", 50);
+                editor.putBoolean("leftsetting", false);
                 editor.commit();
 
                 showpermissiondialog();
@@ -74,10 +75,10 @@ public class BlankActivity extends Activity {
 
             }
         });
-        builder.setPositiveButton("拒绝(╬ﾟдﾟ)", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("不设咋地(╬ﾟдﾟ)", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(getApplicationContext(), "需要上层权限才能运行( ´_ゝ`)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "那就算了吧( ´_ゝ`)", Toast.LENGTH_SHORT).show();
                 onDestroy();
             }
         });

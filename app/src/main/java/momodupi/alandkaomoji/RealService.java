@@ -9,6 +9,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.IBinder;
+import android.util.DisplayMetrics;
+import android.util.Size;
+import android.view.Display;
 import android.view.DragEvent;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -20,10 +23,12 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,10 +48,12 @@ public class RealService extends Service {
 
     WindowManager.LayoutParams wmParams;
     WindowManager mWindowManager;
+    DisplayMetrics metric;
 
     Button movebutton, closebutton;
-    TextView transtextView, brifetextView;
+    TextView transtextView, lefttextView, brifetextView;
     SeekBar transseekBar;
+    Switch leftswitch;
 
     ArrayAdapter<String> arrayAdapter;
     List<String> data;
@@ -55,7 +62,7 @@ public class RealService extends Service {
     ClipboardManager clipbrd;
     ClipData clipData;
 
-    private boolean moveflag = false, hideflag = false, dragflag = false, scrollheadflag = false;
+    private boolean moveflag = false, hideflag = false, dragflag = false, scrollheadflag = false, leftflag = false;
     private int menusts = 0;
     public final static int WM_MWNU = 0;
     public final static int ST_MENU = 1;
@@ -77,15 +84,36 @@ public class RealService extends Service {
     {
         super.onCreate();
 
+        SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
+        transsetting = preferences.getFloat("transsetting", 50);
+        leftflag = preferences.getBoolean("leftsetting", false);
+
+        data = new ArrayList<String>();
+        int kaonum = preferences.getInt("kaonum", 87);
+        for (int cnt = 0; cnt < kaonum; cnt++) {
+            data.add(preferences.getString("kao" + String.valueOf(cnt), null));
+        }
+
         wmParams = new WindowManager.LayoutParams();
         mWindowManager = (WindowManager)getApplication().getSystemService(getApplication().WINDOW_SERVICE);
         wmParams.type = WindowManager.LayoutParams.TYPE_PHONE;
         wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         wmParams.gravity = Gravity.LEFT | Gravity.TOP;
-        wmParams.x = 800;
-        //wmParams.y = 800;
+
+        metric = new DisplayMetrics();
+
         wmParams.width = dip2px(getApplicationContext(), 96);
         wmParams.height = dip2px(getApplicationContext(), 270);
+        mWindowManager.getDefaultDisplay().getMetrics(metric);
+
+        if (leftflag == true) {
+            wmParams.x = 0;
+        }
+        else {
+            wmParams.x = metric.widthPixels - wmParams.width;
+        }
+
+        wmParams.y = metric.widthPixels / 2;
         orirawx = wmParams.x;
         orirawy = wmParams.y;
 
@@ -105,17 +133,14 @@ public class RealService extends Service {
         transseekBar = (SeekBar) wmlayout.findViewById(R.id.transseekBar);
         transseekBar.setMax(100);
         transseekBar.setProgress(50);
+
+        lefttextView = (TextView) wmlayout.findViewById(R.id.lefttextView);
+        leftswitch = (Switch) wmlayout.findViewById(R.id.leftswitch);
+
         brifetextView = (TextView) wmlayout.findViewById(R.id.brifetextView);
 
-        SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
-        transsetting = preferences.getFloat("transsetting", 50);
         transseekBar.setProgress((int) transsetting);
-
-        data = new ArrayList<String>();
-        int kaonum = preferences.getInt("kaonum", 87);
-        for (int cnt = 0; cnt < kaonum; cnt++) {
-            data.add(preferences.getString("kao" + String.valueOf(cnt), null));
-        }
+        leftswitch.setChecked(leftflag);
 
         arrayAdapter = new ArrayAdapter<String>(this, R.layout.service_item, data);
         listView.setAdapter(arrayAdapter);
@@ -156,7 +181,7 @@ public class RealService extends Service {
                         orirawy = (int) event.getRawY();
 
                         if (moveflag == false) {
-                            wmParams.x = orirawx - (int) event.getX();
+                            //wmParams.x = orirawx - (int) event.getX();
                             //wmParams.y = orirawy - (int) event.getY();
                         }
 
@@ -207,6 +232,7 @@ public class RealService extends Service {
                 }
                 editor.putInt("kaonum", cnt);
                 editor.putFloat("transsetting", transsetting);
+                editor.putBoolean("leftsetting", leftflag);
                 editor.commit();
 
                 stopSelf();
@@ -298,6 +324,18 @@ public class RealService extends Service {
 
             }
         });
+
+        leftswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    leftflag = true;
+                }
+                else {
+                    leftflag = false;
+                }
+            }
+        });
     }
 
     @Override
@@ -311,7 +349,6 @@ public class RealService extends Service {
     {
         if(wmlayout != null)
         {
-            //移除悬浮窗口
             mWindowManager.removeView(wmlayout);
         }
         super.onDestroy();
@@ -320,12 +357,25 @@ public class RealService extends Service {
     private void setnormalinterface() {
         wmParams.width = dip2px(getApplicationContext(), 96);
         wmParams.height = dip2px(getApplicationContext(), 270);
+
+        if (leftflag == true) {
+            wmParams.x = 0;
+        }
+        else {
+            if (wmParams.x > (metric.widthPixels - wmParams.width)) {
+                wmParams.x = metric.widthPixels - wmParams.width;
+            }
+        }
+
         wmlayout.setAlpha(1);
         listView.setSelection(0);
         listView.setVisibility(View.VISIBLE);
         transtextView.setVisibility(View.GONE);
         transseekBar.setVisibility(View.GONE);
+        lefttextView.setVisibility(View.GONE);
+        leftswitch.setVisibility(View.GONE);
         brifetextView.setVisibility(View.GONE);
+
         mWindowManager.updateViewLayout(wmlayout, wmParams);
 
         movebutton.setText(btykao_expd[curPower]);
@@ -333,15 +383,22 @@ public class RealService extends Service {
     }
 
     private void sethideinterface() {
-        wmParams.x = 8000;
-
         wmlayout.setAlpha(transsetting / 100);
         wmParams.width = dip2px(getApplicationContext(), 60);
         wmParams.height = dip2px(getApplicationContext(), 36);
 
+        if (leftflag == true) {
+            wmParams.x = 0;
+        }
+        else {
+            wmParams.x = metric.widthPixels - wmParams.width;
+        }
+
         listView.setVisibility(View.GONE);
         transtextView.setVisibility(View.GONE);
         transseekBar.setVisibility(View.GONE);
+        lefttextView.setVisibility(View.GONE);
+        leftswitch.setVisibility(View.GONE);
         brifetextView.setVisibility(View.GONE);
 
         mWindowManager.updateViewLayout(wmlayout, wmParams);
@@ -358,6 +415,8 @@ public class RealService extends Service {
         listView.setVisibility(View.GONE);
         transtextView.setVisibility(View.VISIBLE);
         transseekBar.setVisibility(View.VISIBLE);
+        lefttextView.setVisibility(View.VISIBLE);
+        leftswitch.setVisibility(View.VISIBLE);
         brifetextView.setVisibility(View.VISIBLE);
 
         mWindowManager.updateViewLayout(wmlayout, wmParams);

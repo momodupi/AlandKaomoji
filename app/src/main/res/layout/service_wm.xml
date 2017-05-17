@@ -44,12 +44,27 @@
         android:layout_height="40dp"
         android:id="@+id/transtextView"
         android:textAlignment="center"
-        android:gravity="center"/>
+        android:gravity="center" />
 
     <SeekBar
         android:layout_width="match_parent"
         android:layout_height="20dp"
         android:id="@+id/transseekBar" />
+
+    <TextView
+        android:text="@string/leftsetting"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:id="@+id/lefttextView"
+        android:textAlignment="center"
+        android:gravity="center" />
+
+    <Switch
+        android:showText="false"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/leftswitch"
+        android:textAlignment="center" />
 
     <TextView
         android:text="@string/brife"
