@@ -14,3 +14,6 @@ OVERLAY_PERMISSION needed on Android 6.0 or above. </br>
 1. Add setting menu and new touch policy </br>
 2. Remove GSON to minimize the size of apk </br>
 3. Repaire bug
+### 2017.5.17
+1. Change initial postion to touch easily </br>
+2. Add lefthand mode
