@@ -8,34 +8,34 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.IBinder;
 import android.util.DisplayMetrics;
-import android.util.Size;
-import android.view.Display;
-import android.view.DragEvent;
-import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.lang.reflect.Type;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 
 /**
  * Created by 40910 on 2017/5/15.
@@ -44,32 +44,42 @@ import java.util.List;
 
 public class RealService extends Service {
 
-    LinearLayout wmlayout;
+    LinearLayout prstlayout, wmlayout, setttinglayout, notelayout, kaolayout, hidelayout;
 
     WindowManager.LayoutParams wmParams;
     WindowManager mWindowManager;
     DisplayMetrics metric;
 
-    Button movebutton, closebutton;
+    Button movebutton, closebutton, notebackBtn, noteclearBtn, notemoveBtn, setbackBtn, setmoveBtn, kaobackBtn, kaomoveBtn, hidemoveBtn;
+    Button touchBtn = null;
+
     TextView transtextView, lefttextView, brifetextView;
     SeekBar transseekBar;
     Switch leftswitch;
+    //ImageView noteimageView;
+    EditText noteeditText;
+    String notedata;
 
-    ArrayAdapter<String> arrayAdapter;
-    List<String> data;
-    ListView listView;
+    ArrayAdapter<String> arrayAdapter, kaoarrayAdapter;
+    List<String> kaodata;
+    ListView listView, kaolistView;
+
+    //private Bitmap notebmp, notebmpbak;
+    //private Canvas notecanvas;
+    //private Paint notepaint;
 
     ClipboardManager clipbrd;
     ClipData clipData;
 
-    private boolean moveflag = false, hideflag = false, dragflag = false, scrollheadflag = false, leftflag = false;
-    private int menusts = 0;
-    public final static int WM_MWNU = 0;
+    private boolean moveflag = false, hideflag = false, leftflag = false;
+
+    public final static int WM_MENU = 0;
     public final static int ST_MENU = 1;
     public final static int HD_MENU = 2;
+    public final static int KM_MENU = 3;
+    public final static int NT_MENU = 4;
 
-    private int orirawx = 0, orirawy = 0;
-    private int listdrag = 0;
+    private int orirawx = 0, orirawy = 0, notex = 0, notey = 0;
 
     private String butstr;
 
@@ -84,20 +94,13 @@ public class RealService extends Service {
     {
         super.onCreate();
 
-        SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
-        transsetting = preferences.getFloat("transsetting", 50);
-        leftflag = preferences.getBoolean("leftsetting", false);
-
-        data = new ArrayList<String>();
-        int kaonum = preferences.getInt("kaonum", 87);
-        for (int cnt = 0; cnt < kaonum; cnt++) {
-            data.add(preferences.getString("kao" + String.valueOf(cnt), null));
-        }
+        readpref();
 
         wmParams = new WindowManager.LayoutParams();
         mWindowManager = (WindowManager)getApplication().getSystemService(getApplication().WINDOW_SERVICE);
-        wmParams.type = WindowManager.LayoutParams.TYPE_PHONE;
         wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        wmParams.type = WindowManager.LayoutParams.TYPE_TOAST;
+        //wmParams.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
         wmParams.gravity = Gravity.LEFT | Gravity.TOP;
 
         metric = new DisplayMetrics();
@@ -118,105 +121,32 @@ public class RealService extends Service {
         orirawy = wmParams.y;
 
         LayoutInflater inflater = LayoutInflater.from(getApplication());
-        wmlayout = (LinearLayout) inflater.inflate(R.layout.service_wm, null);
-
-        mWindowManager.addView(wmlayout, wmParams);
 
         clipbrd = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
 
+        //wm layout
+        wmlayout = (LinearLayout) inflater.inflate(R.layout.service_wm, null);
+        mWindowManager.addView(wmlayout, wmParams);
+        prstlayout = wmlayout;
+
         listView = (ListView) wmlayout.findViewById(R.id.listView);
         movebutton = (Button) wmlayout.findViewById(R.id.moveBtn);
-
         closebutton = (Button) wmlayout.findViewById(R.id.closeBtn);
+        touchBtn = movebutton;
 
-        transtextView = (TextView) wmlayout.findViewById(R.id.transtextView);
-        transseekBar = (SeekBar) wmlayout.findViewById(R.id.transseekBar);
-        transseekBar.setMax(100);
-        transseekBar.setProgress(50);
 
-        lefttextView = (TextView) wmlayout.findViewById(R.id.lefttextView);
-        leftswitch = (Switch) wmlayout.findViewById(R.id.leftswitch);
-
-        brifetextView = (TextView) wmlayout.findViewById(R.id.brifetextView);
-
-        transseekBar.setProgress((int) transsetting);
-        leftswitch.setChecked(leftflag);
-
-        arrayAdapter = new ArrayAdapter<String>(this, R.layout.service_item, data);
+        arrayAdapter = new ArrayAdapter<String>(this, R.layout.service_item, getmenulist());
         listView.setAdapter(arrayAdapter);
 
         wmlayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-
-        IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if(Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())){
-                    int level = intent.getIntExtra("level", 0);
-                    int scale = intent.getIntExtra("scale", 100);
-                    curPower = (level * 100 / scale) / 25;
-                    if (hideflag == false) {
-                        movebutton.setText(btykao_expd[curPower]);
-                    }
-                    else {
-                        movebutton.setText(btykao_hide[curPower]);
-                    }
-                }
-            }
-        };
-        registerReceiver(broadcastReceiver, intentFilter);
 
         movebutton.setOnTouchListener(new View.OnTouchListener()
         {
             @Override
             public boolean onTouch(View v, MotionEvent event)
             {
-                int action = event.getAction();
-
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN: {
-
-                        orirawx = (int) event.getRawX();
-                        orirawy = (int) event.getRawY();
-
-                        if (moveflag == false) {
-                            //wmParams.x = orirawx - (int) event.getX();
-                            //wmParams.y = orirawy - (int) event.getY();
-                        }
-
-                        butstr = (String) movebutton.getText();
-                        movebutton.setText("( ﾟ∀。)");
-                    }
-                    break;
-                    case MotionEvent.ACTION_MOVE: {
-                        wmParams.x += (int) event.getRawX() - orirawx;
-                        wmParams.y += (int) event.getRawY() - orirawy;
-                        mWindowManager.updateViewLayout(wmlayout, wmParams);
-                        orirawx = (int) event.getRawX();
-                        orirawy = (int) event.getRawY();
-
-                        moveflag = true;
-                    }
-                    break;
-                    case MotionEvent.ACTION_UP: {
-                        movebutton.setText(butstr);
-
-                        if (moveflag == false) {
-                            if(menusts == HD_MENU) {
-                                setnormalinterface();
-                            }
-                            else {
-                                sethideinterface();
-                            }
-                        }
-                        moveflag = false;
-                    }
-                    break;
-                    default: {
-                        ;
-                    }
-                }
+                wmguesture(event, WM_MENU);
                 return false;
             }
         });
@@ -224,17 +154,7 @@ public class RealService extends Service {
         closebutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
-
-                int cnt;
-                for (cnt = 0; cnt < data.size(); cnt++) {
-                    editor.putString("kao" + String.valueOf(cnt), data.get(cnt).toString());
-                }
-                editor.putInt("kaonum", cnt);
-                editor.putFloat("transsetting", transsetting);
-                editor.putBoolean("leftsetting", leftflag);
-                editor.commit();
-
+                savepref();
                 stopSelf();
             }
         });
@@ -242,69 +162,57 @@ public class RealService extends Service {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String str = arrayAdapter.getItem((int) id).toString();
-
-                clipData = ClipData.newPlainText("kao", str);
-                clipbrd.setPrimaryClip(clipData);
-/**/
-                sethideinterface();
-                moveflag = false;
-
-                Collections.reverse(data);
-                data.remove(str);
-                data.add(str);
-                Collections.reverse(data);
-                arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.service_item, data);
-
-                listView.setAdapter(arrayAdapter);
-            }
-        });
-/**/
-        listView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                int action = event.getAction();
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN: {
-                        listdrag = (int) event.getRawY();
-                        dragflag = false;
+                switch (position) {
+                    case 0: {
+                        setkaomojiinterface();
                     }
                     break;
-                    case MotionEvent.ACTION_MOVE: {
-                        if ((event.getRawY() - listdrag) > 0) {
-                            dragflag = true;
-                        }
+                    case 1: {
+                        setnoteinterface();
                     }
                     break;
-                    case MotionEvent.ACTION_UP: {
-                        if ((dragflag == true) && (scrollheadflag == true)) {
-                            setsettinginterface();
-                        }
-                        dragflag = false;
+                    case 2: {
+                        setsettinginterface();
                     }
                     break;
                     default: {
                         ;
                     }
                 }
+            }
+        });
+
+        //setting layout
+        setttinglayout = (LinearLayout) inflater.inflate(R.layout.service_setting, null);
+        setbackBtn = (Button) setttinglayout.findViewById(R.id.setbackBtn);
+        setmoveBtn = (Button) setttinglayout.findViewById(R.id.setmoveBtn);
+        setmoveBtn.setText(butstr);
+
+        transtextView = (TextView) setttinglayout.findViewById(R.id.transtextView);
+        transseekBar = (SeekBar) setttinglayout.findViewById(R.id.transseekBar);
+        transseekBar.setMax(100);
+        transseekBar.setProgress(50);
+
+        lefttextView = (TextView) setttinglayout.findViewById(R.id.lefttextView);
+        leftswitch = (Switch) setttinglayout.findViewById(R.id.leftswitch);
+        brifetextView = (TextView) setttinglayout.findViewById(R.id.brifetextView);
+
+        transseekBar.setProgress((int) transsetting);
+        leftswitch.setChecked(leftflag);
+
+        setmoveBtn.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                wmguesture(event, ST_MENU);
                 return false;
             }
         });
 
-        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+        setbackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-
-            }
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                if (firstVisibleItem == 0) {
-                    scrollheadflag = true;
-                }
-                else {
-                    scrollheadflag = false;
-                }
+            public void onClick(View v) {
+                setnormalinterface();
             }
         });
 
@@ -336,7 +244,131 @@ public class RealService extends Service {
                 }
             }
         });
+
+        //note layout
+        notelayout = (LinearLayout) inflater.inflate(R.layout.service_note, null);
+        notebackBtn = (Button) notelayout.findViewById(R.id.notebackBtn);
+        noteclearBtn = (Button) notelayout.findViewById(R.id.noteclearBtn);
+        notemoveBtn = (Button) notelayout.findViewById(R.id.notemoveBtn);
+        notemoveBtn.setText(butstr);
+        //noteimageView = (ImageView) notelayout.findViewById(R.id.noteimageView);
+        noteeditText = (EditText) notelayout.findViewById(R.id.noteeditText);
+        noteeditText.setText(notedata);
+
+        //setnotebmp();
+        notemoveBtn.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                wmguesture(event, NT_MENU);
+                return false;
+            }
+        });
+
+        noteclearBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //setnotebmp();
+                notedata = "";
+                noteeditText.setText(notedata);
+            }
+        });
+
+        notebackBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                notedata = noteeditText.getText().toString();
+                wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                setnormalinterface();
+            }
+        });
+/*
+        noteimageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                notepaint(event);
+                return true;
+            }
+        });*/
+
+        //hide layout
+        hidelayout = (LinearLayout) inflater.inflate(R.layout.service_hide, null);
+        hidemoveBtn = (Button) hidelayout.findViewById(R.id.hidemoveBtn);
+
+        hidemoveBtn.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                wmguesture(event, HD_MENU);
+                return false;
+            }
+        });
+
+        //kao layout
+        kaolayout = (LinearLayout) inflater.inflate(R.layout.service_kao, null);
+        kaolistView = (ListView) kaolayout.findViewById(R.id.kaolistView);
+        kaoarrayAdapter = new ArrayAdapter<String>(this, R.layout.service_item, kaodata);
+        kaolistView.setAdapter(kaoarrayAdapter);
+        kaobackBtn = (Button) kaolayout.findViewById(R.id.kaobackBtn);
+        kaomoveBtn = (Button) kaolayout.findViewById(R.id.kaomoveBtn);
+        kaomoveBtn.setText(butstr);
+
+        kaomoveBtn.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                wmguesture(event, KM_MENU);
+                return false;
+            }
+        });
+
+        kaobackBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setnormalinterface();
+            }
+        });
+
+        kaolistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String str = kaoarrayAdapter.getItem((int) id).toString();
+
+                clipData = ClipData.newPlainText("kao", str);
+                clipbrd.setPrimaryClip(clipData);
+
+                sethideinterface();
+
+                Collections.reverse(kaodata);
+                kaodata.remove(str);
+                kaodata.add(str);
+                Collections.reverse(kaodata);
+                kaoarrayAdapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.service_item, kaodata);
+
+                kaolistView.setAdapter(kaoarrayAdapter);
+            }
+        });
+
+        IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if(Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())){
+                    int level = intent.getIntExtra("level", 0);
+                    int scale = intent.getIntExtra("scale", 100);
+                    curPower = (level * 100 / scale) / 25;
+                    if (hideflag == false) {
+                        touchBtn.setText(btykao_expd[curPower]);
+                    }
+                    else {
+                        touchBtn.setText(btykao_hide[curPower]);
+                    }
+                }
+            }
+        };
+        registerReceiver(broadcastReceiver, intentFilter);
     }
+
 
     @Override
     public IBinder onBind(Intent intent)
@@ -354,77 +386,223 @@ public class RealService extends Service {
         super.onDestroy();
     }
 
-    private void setnormalinterface() {
-        wmParams.width = dip2px(getApplicationContext(), 96);
-        wmParams.height = dip2px(getApplicationContext(), 270);
+    private void wmguesture(MotionEvent event, int itfc) {
+        int action = event.getAction();
 
-        if (leftflag == true) {
-            wmParams.x = 0;
-        }
-        else {
-            if (wmParams.x > (metric.widthPixels - wmParams.width)) {
-                wmParams.x = metric.widthPixels - wmParams.width;
+        switch (itfc) {
+            case WM_MENU: {
+                touchBtn = movebutton;
+            }
+            break;
+            case HD_MENU: {
+                touchBtn = hidemoveBtn;
+            }
+            break;
+            case KM_MENU: {
+                touchBtn = kaomoveBtn;
+            }
+            break;
+            case ST_MENU: {
+                touchBtn = setmoveBtn;
+            }
+            case NT_MENU: {
+                touchBtn = notemoveBtn;
+            }
+            default: {
+                ;
             }
         }
 
-        wmlayout.setAlpha(1);
-        listView.setSelection(0);
-        listView.setVisibility(View.VISIBLE);
-        transtextView.setVisibility(View.GONE);
-        transseekBar.setVisibility(View.GONE);
-        lefttextView.setVisibility(View.GONE);
-        leftswitch.setVisibility(View.GONE);
-        brifetextView.setVisibility(View.GONE);
+        switch (action) {
+            case MotionEvent.ACTION_DOWN: {
 
-        mWindowManager.updateViewLayout(wmlayout, wmParams);
+                orirawx = (int) event.getRawX();
+                orirawy = (int) event.getRawY();
 
-        movebutton.setText(btykao_expd[curPower]);
-        menusts = WM_MWNU;
+                butstr = (String) touchBtn.getText();
+                touchBtn.setText("( ﾟ∀。)");
+            }
+            break;
+            case MotionEvent.ACTION_MOVE: {
+                wmParams.x += (int) event.getRawX() - orirawx;
+                wmParams.y += (int) event.getRawY() - orirawy;
+
+                if (itfc != HD_MENU) {
+                    mWindowManager.updateViewLayout(prstlayout, wmParams);
+                }
+                else  {
+                    mWindowManager.updateViewLayout(hidelayout, wmParams);
+                }
+
+                orirawx = (int) event.getRawX();
+                orirawy = (int) event.getRawY();
+
+                moveflag = true;
+            }
+            break;
+            case MotionEvent.ACTION_UP: {
+                touchBtn.setText(butstr);
+
+                if (moveflag == false) {
+                    if (itfc == HD_MENU) {
+                        setoriinterface();
+                    }
+                    else {
+                        sethideinterface();
+                    }
+                }
+                moveflag = false;
+            }
+            break;
+            default: {
+                ;
+            }
+        }
     }
+/*
+    private void notepaint(MotionEvent event) {
+        int action = event.getAction();
 
-    private void sethideinterface() {
-        wmlayout.setAlpha(transsetting / 100);
-        wmParams.width = dip2px(getApplicationContext(), 60);
-        wmParams.height = dip2px(getApplicationContext(), 36);
+        switch (action) {
+            case MotionEvent.ACTION_DOWN: {
+                notex = (int) event.getX();
+                notey = (int) event.getY();
+            }
+            break;
+            case MotionEvent.ACTION_MOVE: {
+                int px = (int) event.getX();
+                int py = (int) event.getY();
+                notecanvas.drawLine(notex, notey, px, py, notepaint);
+                notex = px;
+                notey = py;
+                noteimageView.setImageBitmap(notebmp);
+            }
+            break;
+            case MotionEvent.ACTION_UP: {
 
+            }
+            break;
+            default: {
+                ;
+            }
+        }
+    }
+*/
+    public void setlocation() {
         if (leftflag == true) {
             wmParams.x = 0;
         }
         else {
             wmParams.x = metric.widthPixels - wmParams.width;
         }
+    }
 
-        listView.setVisibility(View.GONE);
-        transtextView.setVisibility(View.GONE);
-        transseekBar.setVisibility(View.GONE);
-        lefttextView.setVisibility(View.GONE);
-        leftswitch.setVisibility(View.GONE);
-        brifetextView.setVisibility(View.GONE);
+    public void readpref() {
+        SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
+        transsetting = preferences.getFloat("transsetting", 50);
+        leftflag = preferences.getBoolean("leftsetting", false);
 
+        kaodata = new ArrayList<String>();
+        int kaonum = preferences.getInt("kaonum", 87);
+        for (int cnt = 0; cnt < kaonum; cnt++) {
+            kaodata.add(preferences.getString("kao" + String.valueOf(cnt), null));
+        }
+        notedata = preferences.getString("note", null);
+    }
+
+    public void savepref() {
+        SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
+
+        int cnt;
+        for (cnt = 0; cnt < kaodata.size(); cnt++) {
+            editor.putString("kao" + String.valueOf(cnt), kaodata.get(cnt).toString());
+        }
+        editor.putString("note", notedata.toString());
+        editor.putInt("kaonum", cnt);
+        editor.putFloat("transsetting", transsetting);
+        editor.putBoolean("leftsetting", leftflag);
+        editor.commit();
+    }
+/*
+    public void setnotebmp() {
+        notepaint = new Paint();
+        notepaint.setStrokeWidth(3);
+        notepaint.setColor(Color.parseColor("#eeeeee"));
+        notebmp = Bitmap.createBitmap(dip2px(getApplicationContext(), 200), dip2px(getApplicationContext(), 264), Bitmap.Config.ARGB_8888);
+        notecanvas = new Canvas(notebmp);
+        notecanvas.drawColor(Color.parseColor("#414141"));
+        noteimageView.setImageBitmap(notebmp);
+    }
+*/
+    private void setnormalinterface() {
+        wmParams.width = dip2px(getApplicationContext(), 108);
+        wmParams.height = dip2px(getApplicationContext(), 276);
+        setlocation();
+        mWindowManager.removeView(prstlayout);
+        mWindowManager.addView(wmlayout, wmParams);
         mWindowManager.updateViewLayout(wmlayout, wmParams);
+        prstlayout = wmlayout;
 
-        movebutton.setText(btykao_hide[curPower]);
-        menusts = HD_MENU;
+        movebutton.setText(btykao_expd[curPower]);
+    }
+
+    private void sethideinterface() {
+        hidelayout.setAlpha(transsetting / 100);
+        wmParams.width = dip2px(getApplicationContext(), 60);
+        wmParams.height = dip2px(getApplicationContext(), 36);
+        hideflag = true;
+        setlocation();
+        mWindowManager.addView(hidelayout, wmParams);
+        mWindowManager.updateViewLayout(hidelayout, wmParams);
+        mWindowManager.removeView(prstlayout);
+
+        hidemoveBtn.setText(btykao_hide[curPower]);
+    }
+
+    public void setoriinterface() {
+        wmParams.width = prstlayout.getWidth();
+        wmParams.height = prstlayout.getHeight();
+        hideflag = false;
+        setlocation();
+        mWindowManager.addView(prstlayout, wmParams);
+        mWindowManager.updateViewLayout(prstlayout, wmParams);
+        mWindowManager.removeView(hidelayout);
     }
 
     private void setsettinginterface() {
-        wmParams.width = dip2px(getApplicationContext(), 96);
-        wmParams.height = dip2px(getApplicationContext(), 270);
-        wmlayout.setAlpha(1);
-
-        listView.setVisibility(View.GONE);
-        transtextView.setVisibility(View.VISIBLE);
-        transseekBar.setVisibility(View.VISIBLE);
-        lefttextView.setVisibility(View.VISIBLE);
-        leftswitch.setVisibility(View.VISIBLE);
-        brifetextView.setVisibility(View.VISIBLE);
-
-        mWindowManager.updateViewLayout(wmlayout, wmParams);
-
-        movebutton.setText(btykao_expd[curPower]);
-        menusts = ST_MENU;
+        wmParams.width = dip2px(getApplicationContext(), 108);
+        wmParams.height = dip2px(getApplicationContext(), 276);
+        setlocation();
+        mWindowManager.addView(setttinglayout, wmParams);
+        mWindowManager.updateViewLayout(setttinglayout, wmParams);
+        mWindowManager.removeView(prstlayout);
+        prstlayout = setttinglayout;
+        setmoveBtn.setText(btykao_expd[curPower]);
     }
 
+    private void setnoteinterface() {
+        wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+        wmParams.width = dip2px(getApplicationContext(), 200);
+        wmParams.height = dip2px(getApplicationContext(), 300);
+        setlocation();
+        mWindowManager.addView(notelayout, wmParams);
+        mWindowManager.updateViewLayout(notelayout, wmParams);
+        mWindowManager.removeView(prstlayout);
+        prstlayout = notelayout;
+        notemoveBtn.setText(btykao_expd[curPower]);
+        noteeditText.setText(notedata);
+    }
+
+    private void setkaomojiinterface() {
+        wmParams.width = dip2px(getApplicationContext(), 108);
+        wmParams.height = dip2px(getApplicationContext(), 276);
+        setlocation();
+        mWindowManager.addView(kaolayout, wmParams);
+        mWindowManager.updateViewLayout(kaolayout, wmParams);
+        mWindowManager.removeView(prstlayout);
+        prstlayout = kaolayout;
+        kaomoveBtn.setText(btykao_expd[curPower]);
+    }
 
     private int dip2px(Context context, float dpValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
@@ -436,96 +614,12 @@ public class RealService extends Service {
         return (int) (pxValue / scale + 0.5f);
     }
 
-    private List<String> getkaomojilist() {
+    private List<String> getmenulist() {
 
         List<String> mdata = new ArrayList<String>();
-        mdata.add("|∀ﾟ");
-        mdata.add("(´ﾟДﾟ`)");
-        mdata.add("(;´Д`)");
-        mdata.add("(｀･ω･)");
-        mdata.add("(=ﾟωﾟ)=");
-        mdata.add("| ω・´)");
-        mdata.add("|-` )");
-        mdata.add("|д` )");
-        mdata.add("|ー` )");
-        mdata.add("|∀` )");
-        mdata.add("(つд⊂)");
-        mdata.add("(ﾟДﾟ≡ﾟДﾟ)");
-        mdata.add("(＾o＾)ﾉ");
-        mdata.add("(|||ﾟДﾟ)");
-        mdata.add("( ﾟ∀ﾟ)");
-        mdata.add("( ´∀`)");
-        mdata.add("(*´∀`)");
-        mdata.add("(*ﾟ∇ﾟ)");
-        mdata.add("(*ﾟーﾟ)");
-        mdata.add("(　ﾟ 3ﾟ)");
-        mdata.add("( ´ー`)");
-        mdata.add("( ・_ゝ・)");
-        mdata.add("( ´_ゝ`)");
-        mdata.add("(*´д`)");
-        mdata.add("(・ー・)");
-        mdata.add("(・∀・)");
-        mdata.add("(ゝ∀･)");
-        mdata.add("(〃∀〃)");
-        mdata.add("(*ﾟ∀ﾟ*)");
-        mdata.add("( ﾟ∀。)");
-        mdata.add("( `д´)");
-        mdata.add("(`ε´ )");
-        mdata.add("(`ヮ´ )");
-        mdata.add("σ`∀´)");
-        mdata.add(" ﾟ∀ﾟ)σ");
-        mdata.add("ﾟ ∀ﾟ)ノ");
-        mdata.add("(╬ﾟдﾟ)");
-        mdata.add("(|||ﾟдﾟ)");
-        mdata.add("( ﾟдﾟ)");
-        mdata.add("Σ( ﾟдﾟ)");
-        mdata.add("( ;ﾟдﾟ)");
-        mdata.add("( ;´д`)");
-        mdata.add("(　д ) ﾟ ﾟ");
-        mdata.add("( ☉д⊙)");
-        mdata.add("(((　ﾟдﾟ)))");
-        mdata.add("( ` ・´)");
-        mdata.add("( ´д`)");
-        mdata.add("( -д-)");
-        mdata.add("(>д<)");
-        mdata.add("･ﾟ( ﾉд`ﾟ)");
-        mdata.add("( TдT)");
-        mdata.add("(￣∇￣)");
-        mdata.add("(￣3￣)");
-        mdata.add("(￣ｰ￣)");
-        mdata.add("(￣ . ￣)");
-        mdata.add("(￣皿￣)");
-        mdata.add("(￣艸￣)");
-        mdata.add("(￣︿￣)");
-        mdata.add("(￣︶￣)");
-        mdata.add("ヾ(´ωﾟ｀)");
-        mdata.add("(*´ω`*)");
-        mdata.add("(・ω・)");
-        mdata.add("( ´・ω)");
-        mdata.add("(｀・ω)");
-        mdata.add("(´・ω・`)");
-        mdata.add("(`・ω・´)");
-        mdata.add("( `_っ´)");
-        mdata.add("( `ー´)");
-        mdata.add("( ´_っ`)");
-        mdata.add("( ´ρ`)");
-        mdata.add("( ﾟωﾟ)");
-        mdata.add("(oﾟωﾟo)");
-        mdata.add("(　^ω^)");
-        mdata.add("(｡◕∀◕｡)");
-        mdata.add("/( ◕‿‿◕ )\\");
-        mdata.add("ヾ(´ε`ヾ)");
-        mdata.add("(ノﾟ∀ﾟ)ノ");
-        mdata.add("(σﾟдﾟ)σ");
-        mdata.add("(σﾟ∀ﾟ)σ");
-        mdata.add("|дﾟ )");
-        mdata.add("┃電柱┃");
-        mdata.add("ﾟ(つд`ﾟ)");
-        mdata.add("ﾟÅﾟ )　");
-        mdata.add("⊂彡☆))д`)");
-        mdata.add("⊂彡☆))д´)");
-        mdata.add("⊂彡☆))∀`)");
-        mdata.add("(´∀((☆ミつ");
+        mdata.add("颜文字");
+        mdata.add("便签");
+        mdata.add("设置");
 
         return mdata;
     }

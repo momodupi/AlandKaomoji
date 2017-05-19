@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="108dp"
+    android:layout_height="276dp"
+    android:background="@drawable/service_brd"
+    android:elevation="10dp"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:background="@drawable/service_tag"
+        android:elevation="6dp"
+        android:orientation="horizontal"
+        android:weightSum="1" >
+
+        <Button
+            android:id="@+id/setmoveBtn"
+            android:layout_width="72dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#00000000"
+            android:text=""
+            android:textColor="#eeeeee" />
+
+        <Button
+            android:id="@+id/setbackBtn"
+            android:layout_width="36dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#00000000"
+            android:text="@string/back"
+            android:textColor="#eeeeee" />
+
+    </LinearLayout>
+
+    <TextView
+        android:text="@string/transsetting"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:id="@+id/transtextView"
+        android:textAlignment="center"
+        android:gravity="center" />
+
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:id="@+id/transseekBar" />
+
+    <TextView
+        android:text="@string/leftsetting"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:id="@+id/lefttextView"
+        android:textAlignment="center"
+        android:gravity="center" />
+
+    <Switch
+        android:showText="false"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/leftswitch"
+        android:textAlignment="center" />
+
+    <TextView
+        android:text="@string/brife"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:id="@+id/brifetextView"
+        android:textAlignment="center"
+        android:gravity="center" />
+
+</LinearLayout>
