@@ -97,11 +97,12 @@ public class RealService extends Service {
         readpref();
 
         wmParams = new WindowManager.LayoutParams();
-        mWindowManager = (WindowManager)getApplication().getSystemService(getApplication().WINDOW_SERVICE);
-        wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        wmParams.type = WindowManager.LayoutParams.TYPE_TOAST;
+        mWindowManager = (WindowManager)this.getSystemService(getApplication().WINDOW_SERVICE);
+        wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        wmParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
         //wmParams.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
         wmParams.gravity = Gravity.LEFT | Gravity.TOP;
+        //wmParams.windowAnimations = R.style.animation;
 
         metric = new DisplayMetrics();
 
@@ -121,7 +122,6 @@ public class RealService extends Service {
         orirawy = wmParams.y;
 
         LayoutInflater inflater = LayoutInflater.from(getApplication());
-
         clipbrd = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
 
         //wm layout
@@ -260,6 +260,7 @@ public class RealService extends Service {
         {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                 wmguesture(event, NT_MENU);
                 return false;
             }
@@ -271,6 +272,8 @@ public class RealService extends Service {
                 //setnotebmp();
                 notedata = "";
                 noteeditText.setText(notedata);
+                wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                mWindowManager.updateViewLayout(notelayout, wmParams);
             }
         });
 
@@ -280,6 +283,14 @@ public class RealService extends Service {
                 notedata = noteeditText.getText().toString();
                 wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                 setnormalinterface();
+            }
+        });
+
+        noteeditText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+                mWindowManager.updateViewLayout(notelayout, wmParams);
             }
         });
 /*
@@ -538,9 +549,9 @@ public class RealService extends Service {
         wmParams.width = dip2px(getApplicationContext(), 108);
         wmParams.height = dip2px(getApplicationContext(), 276);
         setlocation();
-        mWindowManager.removeView(prstlayout);
         mWindowManager.addView(wmlayout, wmParams);
         mWindowManager.updateViewLayout(wmlayout, wmParams);
+        mWindowManager.removeView(prstlayout);
         prstlayout = wmlayout;
 
         movebutton.setText(btykao_expd[curPower]);
@@ -581,7 +592,7 @@ public class RealService extends Service {
     }
 
     private void setnoteinterface() {
-        wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+        //wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
         wmParams.width = dip2px(getApplicationContext(), 200);
         wmParams.height = dip2px(getApplicationContext(), 300);
         setlocation();
@@ -594,8 +605,8 @@ public class RealService extends Service {
     }
 
     private void setkaomojiinterface() {
-        wmParams.width = dip2px(getApplicationContext(), 108);
-        wmParams.height = dip2px(getApplicationContext(), 276);
+        //wmParams.width = dip2px(getApplicationContext(), 108);
+        //wmParams.height = dip2px(getApplicationContext(), 276);
         setlocation();
         mWindowManager.addView(kaolayout, wmParams);
         mWindowManager.updateViewLayout(kaolayout, wmParams);

@@ -4,14 +4,15 @@
     android:layout_height="36dp"
     android:background="@drawable/service_brd"
     android:elevation="10dp"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:animateLayoutChanges="true" >
 
     <Button
         android:id="@+id/hidemoveBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:background="#00000000"
+        android:background="#505050"
         android:text=""
         android:textColor="#eeeeee" />
 </LinearLayout>

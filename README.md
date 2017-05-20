@@ -21,3 +21,6 @@ Due to the API level and minimizing the size of apk, Only support Android 5.0 or
 2. Add main menu
 3. Remove OVERLAY_PERMISSION </br>
 4. Add note (still with bug) </br>
+### 2017.5.20
+1. Re-add OVERLAY_PERMISSION to support Android 7.0 </br>
+2. Change the icon of the button </br>
