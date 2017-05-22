@@ -19,11 +19,13 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -44,25 +46,26 @@ import java.util.List;
 
 public class RealService extends Service {
 
-    LinearLayout prstlayout, wmlayout, setttinglayout, notelayout, kaolayout, hidelayout;
+    LinearLayout prstlayout, wmlayout, setttinglayout, notelayout, kaolayout, callayout, hidelayout;
 
     WindowManager.LayoutParams wmParams;
     WindowManager mWindowManager;
     DisplayMetrics metric;
 
-    Button movebutton, closebutton, notebackBtn, noteclearBtn, notemoveBtn, setbackBtn, setmoveBtn, kaobackBtn, kaomoveBtn, hidemoveBtn;
+    Button kaocloseBtn, kaomoveBtn, menumoveBtn, menubackBtn, notebackBtn, noteclearBtn, notemoveBtn, setbackBtn, setmoveBtn, calbackBtn, calmoveBtn, hidemoveBtn;
     Button touchBtn = null;
 
-    TextView transtextView, lefttextView, brifetextView;
+    TextView caltextView, transtextView, lefttextView, brifetextView;
     SeekBar transseekBar;
     Switch leftswitch;
     //ImageView noteimageView;
     EditText noteeditText;
     String notedata;
 
-    ArrayAdapter<String> arrayAdapter, kaoarrayAdapter;
-    List<String> kaodata;
-    ListView listView, kaolistView;
+    ArrayAdapter<String> arrayAdapter, kaoarrayAdapter, calarrayAdapter;
+    List<String> kaodata, caldata;
+    ListView menulistView, kaolistView;
+    GridView calgridView;
 
     //private Bitmap notebmp, notebmpbak;
     //private Canvas notecanvas;
@@ -71,20 +74,40 @@ public class RealService extends Service {
     ClipboardManager clipbrd;
     ClipData clipData;
 
-    private boolean moveflag = false, hideflag = false, leftflag = false;
+    private boolean moveflag = false, hideflag = false, leftflag = false, dragflag = false, scrollheadflag = false;
 
     public final static int WM_MENU = 0;
     public final static int ST_MENU = 1;
     public final static int HD_MENU = 2;
     public final static int KM_MENU = 3;
     public final static int NT_MENU = 4;
+    public final static int CL_MENU = 5;
 
-    private int orirawx = 0, orirawy = 0, notex = 0, notey = 0;
+    public final static int ADD_CL = 1;
+    public final static int MIN_CL = 2;
+    public final static int MUL_CL = 3;
+    public final static int DEV_CL = 4;
+    private int calsymbol = 0;
+
+    private int orirawx = 0, orirawy = 0, notex = 0, notey = 0, listdrag = 0;
 
     private String butstr;
 
     private int curPower = 0;
     float transsetting = 1;
+    double fstnum = 0, sndnum = 0, aswnum = 0;
+    String fstnumstr = "", sndnumstr = "", aswnumstr = "";
+
+    private static String[] menutext = {"颜文字", "便签", "计算器", "设置"};
+
+    private static String[] calbuttontext = {
+            "%", "√", "x^y", "<",
+            "C", "M", "M+", "/",
+            "7", "8", "9", "*",
+            "4", "5", "6", "-",
+            "1", "2", "3", "+",
+            "±", "0", ".", "="
+    };
 
     private static String[] btykao_expd = {"(|||ﾟдﾟ)", "( ´_ゝ`)", "(　ﾟ 3ﾟ)", "( ﾟ∀ﾟ)", "( ﾟ∀ﾟ)"};
     private static String[] btykao_hide = {"|дﾟ )", "|д` )", "|-` )", "|∀` )", "|∀` )"};
@@ -124,24 +147,115 @@ public class RealService extends Service {
         LayoutInflater inflater = LayoutInflater.from(getApplication());
         clipbrd = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
 
+
+        //kao layout
+        kaolayout = (LinearLayout) inflater.inflate(R.layout.service_kao, null);
+        kaolistView = (ListView) kaolayout.findViewById(R.id.kaolistView);
+        kaoarrayAdapter = new ArrayAdapter<String>(this, R.layout.service_item, kaodata);
+        kaolistView.setAdapter(kaoarrayAdapter);
+        kaocloseBtn = (Button) kaolayout.findViewById(R.id.kaocloseBtn);
+        kaomoveBtn = (Button) kaolayout.findViewById(R.id.kaomoveBtn);
+        kaomoveBtn.setText(butstr);
+
+        kaomoveBtn.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                wmguesture(event, KM_MENU);
+                return false;
+            }
+        });
+
+        kaocloseBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //setnormalinterface();
+                savepref();
+                stopSelf();
+            }
+        });
+
+        kaolistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String str = kaoarrayAdapter.getItem((int) id).toString();
+
+                clipData = ClipData.newPlainText("kao", str);
+                clipbrd.setPrimaryClip(clipData);
+
+                sethideinterface();
+
+                Collections.reverse(kaodata);
+                kaodata.remove(str);
+                kaodata.add(str);
+                Collections.reverse(kaodata);
+                kaoarrayAdapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.service_item, kaodata);
+
+                kaolistView.setAdapter(kaoarrayAdapter);
+            }
+        });
+
+        kaolistView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN: {
+                        listdrag = (int) event.getRawY();
+                        dragflag = false;
+                    }
+                    break;
+                    case MotionEvent.ACTION_MOVE: {
+                        if ((event.getRawY() - listdrag) > 0) {
+                            dragflag = true;
+                        }
+                    }
+                    break;
+                    case MotionEvent.ACTION_UP: {
+                        if ((dragflag == true) && (scrollheadflag == true)) {
+                            setnormalinterface();
+                        }
+                        dragflag = false;
+                    }
+                    break;
+                    default: {
+                        ;
+                    }
+                }
+                return false;
+            }
+        });
+
+        kaolistView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if (firstVisibleItem == 0) {
+                    scrollheadflag = true;
+                }
+                else {
+                    scrollheadflag = false;
+                }
+            }
+        });
+
         //wm layout
         wmlayout = (LinearLayout) inflater.inflate(R.layout.service_wm, null);
-        mWindowManager.addView(wmlayout, wmParams);
-        prstlayout = wmlayout;
-
-        listView = (ListView) wmlayout.findViewById(R.id.listView);
-        movebutton = (Button) wmlayout.findViewById(R.id.moveBtn);
-        closebutton = (Button) wmlayout.findViewById(R.id.closeBtn);
-        touchBtn = movebutton;
-
+        menulistView = (ListView) wmlayout.findViewById(R.id.menulistView);
+        menumoveBtn = (Button) wmlayout.findViewById(R.id.menumoveBtn);
+        menubackBtn = (Button) wmlayout.findViewById(R.id.menubackBtn);
 
         arrayAdapter = new ArrayAdapter<String>(this, R.layout.service_item, getmenulist());
-        listView.setAdapter(arrayAdapter);
+        menulistView.setAdapter(arrayAdapter);
 
         wmlayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
-        movebutton.setOnTouchListener(new View.OnTouchListener()
+        menumoveBtn.setOnTouchListener(new View.OnTouchListener()
         {
             @Override
             public boolean onTouch(View v, MotionEvent event)
@@ -151,15 +265,16 @@ public class RealService extends Service {
             }
         });
 
-        closebutton.setOnClickListener(new View.OnClickListener() {
+        menubackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                savepref();
-                stopSelf();
+                //savepref();
+                //stopSelf();
+                setkaomojiinterface();
             }
         });
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        menulistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
@@ -172,6 +287,10 @@ public class RealService extends Service {
                     }
                     break;
                     case 2: {
+                        setcalinterface();
+                    }
+                    break;
+                    case 3: {
                         setsettinginterface();
                     }
                     break;
@@ -315,50 +434,232 @@ public class RealService extends Service {
             }
         });
 
-        //kao layout
-        kaolayout = (LinearLayout) inflater.inflate(R.layout.service_kao, null);
-        kaolistView = (ListView) kaolayout.findViewById(R.id.kaolistView);
-        kaoarrayAdapter = new ArrayAdapter<String>(this, R.layout.service_item, kaodata);
-        kaolistView.setAdapter(kaoarrayAdapter);
-        kaobackBtn = (Button) kaolayout.findViewById(R.id.kaobackBtn);
-        kaomoveBtn = (Button) kaolayout.findViewById(R.id.kaomoveBtn);
-        kaomoveBtn.setText(butstr);
+        //calculator layout
+        callayout = (LinearLayout) inflater.inflate(R.layout.service_calculator, null);
+        calbackBtn = (Button) callayout.findViewById(R.id.calbackBtn);
+        calmoveBtn = (Button) callayout.findViewById(R.id.calmoveBtn);
+        calmoveBtn.setText(butstr);
+        caltextView = (TextView) callayout.findViewById(R.id.caltextView);
+        caltextView.setText("0");
+        calgridView = (GridView) callayout.findViewById(R.id.calgridView);
+        caldata = getcalgrid();
+        calarrayAdapter = new ArrayAdapter<String>(this, R.layout.service_calitem, caldata);
+        calgridView.setAdapter(calarrayAdapter);
 
-        kaomoveBtn.setOnTouchListener(new View.OnTouchListener()
+        calmoveBtn.setOnTouchListener(new View.OnTouchListener()
         {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                wmguesture(event, KM_MENU);
+                wmguesture(event, CL_MENU);
                 return false;
             }
         });
 
-        kaobackBtn.setOnClickListener(new View.OnClickListener() {
+        calbackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 setnormalinterface();
             }
         });
 
-        kaolistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        calgridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String str = kaoarrayAdapter.getItem((int) id).toString();
+                switch (position) {
+                    case 0: {
+                        //%
+                    }
+                    break;
+                    case 1: {
+                        //root
+                    }
+                    break;
+                    case 2: {
+                        //x^y
+                    }
+                    break;
+                    case 3: {
+                        //delete
+                        fstnumstr = fstnumstr.substring(0, fstnumstr.length() - 1);
+                        fstnum = Double.valueOf(fstnumstr);
+                    }
+                    break;
+                    case 4: {
+                        //C
+                        fstnum = 0;
+                        fstnumstr = "";
+                        sndnum = 0;
+                        sndnumstr = "";
+                        aswnum = 0;
+                        aswnumstr = "";
+                    }
+                    break;
+                    case 5: {
+                        //M
+                        sndnum = fstnum;
+                    }
+                    break;
+                    case 6: {
+                        //M+
+                        fstnum = sndnum;
+                    }
+                    break;
+                    case 7: {
+                        ///
+                        calsymbol = DEV_CL;
+                        aswnum = fstnum;
+                        fstnum = 0;
+                        fstnumstr = "";
+                        aswnumstr = String.valueOf(aswnum);
+                        caltextView.setText(aswnumstr);
+                    }
+                    break;
+                    case 8: {
+                        //7
+                        fstnumstr += "7";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 9: {
+                        //8
+                        fstnumstr += "8";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 10: {
+                        //9
+                        fstnumstr += "9";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 11: {
+                        //*
+                        calsymbol = MUL_CL;
+                        aswnum = fstnum;
+                        fstnum = 0;
+                        fstnumstr = "";
+                        aswnumstr = String.valueOf(aswnum);
+                        caltextView.setText(aswnumstr);
+                    }
+                    break;
+                    case 12: {
+                        //4
+                        fstnumstr += "4";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 13: {
+                        //5
+                        fstnumstr += "5";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 14: {
+                        //6
+                        fstnumstr += "6";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 15: {
+                        //-
+                        calsymbol = MIN_CL;
+                        aswnum = fstnum;
+                        fstnum = 0;
+                        fstnumstr = "";
+                        aswnumstr = String.valueOf(aswnum);
+                        caltextView.setText(aswnumstr);
+                    }
+                    break;
+                    case 16: {
+                        //1
+                        fstnumstr += "1";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 17: {
+                        //2
+                        fstnumstr += "2";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 18: {
+                        //3
+                        fstnumstr += "3";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 19: {
+                        //+
+                        calsymbol = ADD_CL;
+                        aswnum = fstnum;
+                        fstnum = 0;
+                        fstnumstr = "";
+                        aswnumstr = String.valueOf(aswnum);
+                        caltextView.setText(aswnumstr);
+                    }
+                    break;
+                    case 20: {
+                        //nega/posi
+                        fstnum = Double.valueOf(fstnumstr);
+                        aswnum = fstnum * -1;
+                    }
+                    break;
+                    case 21: {
+                        //0
+                        fstnumstr += "0";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 22: {
+                        //.
+                        fstnumstr += ".";
+                        fstnum = Double.valueOf(fstnumstr);
+                        caltextView.setText(fstnumstr);
+                    }
+                    break;
+                    case 23: {
+                        //=
+                        switch (calsymbol) {
+                            case ADD_CL: {
+                                aswnum += fstnum;
+                            }
+                            case MIN_CL: {
+                                aswnum -= fstnum;
+                            }
+                            case MUL_CL: {
+                                aswnum *= fstnum;
+                            }
+                            case DEV_CL: {
+                                aswnum /= fstnum;
+                            }
+                            default: {
+                                ;
+                            }
+                        }
+                        fstnum = aswnum;
+                        calsymbol = 0;
+                    }
+                    break;
+                    default: {
+                        ;
+                    }
+                }
 
-                clipData = ClipData.newPlainText("kao", str);
-                clipbrd.setPrimaryClip(clipData);
 
-                sethideinterface();
 
-                Collections.reverse(kaodata);
-                kaodata.remove(str);
-                kaodata.add(str);
-                Collections.reverse(kaodata);
-                kaoarrayAdapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.service_item, kaodata);
-
-                kaolistView.setAdapter(kaoarrayAdapter);
             }
         });
+
 
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -378,6 +679,10 @@ public class RealService extends Service {
             }
         };
         registerReceiver(broadcastReceiver, intentFilter);
+
+        mWindowManager.addView(kaolayout, wmParams);
+        prstlayout = kaolayout;
+        touchBtn = kaomoveBtn;
     }
 
 
@@ -402,7 +707,7 @@ public class RealService extends Service {
 
         switch (itfc) {
             case WM_MENU: {
-                touchBtn = movebutton;
+                touchBtn = menumoveBtn;
             }
             break;
             case HD_MENU: {
@@ -418,6 +723,9 @@ public class RealService extends Service {
             }
             case NT_MENU: {
                 touchBtn = notemoveBtn;
+            }
+            case CL_MENU: {
+                touchBtn = calmoveBtn;
             }
             default: {
                 ;
@@ -553,8 +861,7 @@ public class RealService extends Service {
         mWindowManager.updateViewLayout(wmlayout, wmParams);
         mWindowManager.removeView(prstlayout);
         prstlayout = wmlayout;
-
-        movebutton.setText(btykao_expd[curPower]);
+        menumoveBtn.setText(btykao_expd[curPower]);
     }
 
     private void sethideinterface() {
@@ -566,7 +873,6 @@ public class RealService extends Service {
         mWindowManager.addView(hidelayout, wmParams);
         mWindowManager.updateViewLayout(hidelayout, wmParams);
         mWindowManager.removeView(prstlayout);
-
         hidemoveBtn.setText(btykao_hide[curPower]);
     }
 
@@ -605,14 +911,25 @@ public class RealService extends Service {
     }
 
     private void setkaomojiinterface() {
-        //wmParams.width = dip2px(getApplicationContext(), 108);
-        //wmParams.height = dip2px(getApplicationContext(), 276);
+        wmParams.width = dip2px(getApplicationContext(), 108);
+        wmParams.height = dip2px(getApplicationContext(), 276);
         setlocation();
         mWindowManager.addView(kaolayout, wmParams);
         mWindowManager.updateViewLayout(kaolayout, wmParams);
         mWindowManager.removeView(prstlayout);
         prstlayout = kaolayout;
         kaomoveBtn.setText(btykao_expd[curPower]);
+    }
+
+    private void setcalinterface() {
+        wmParams.width = dip2px(getApplicationContext(), 200);
+        wmParams.height = dip2px(getApplicationContext(), 300);
+        setlocation();
+        mWindowManager.addView(callayout, wmParams);
+        mWindowManager.updateViewLayout(callayout, wmParams);
+        mWindowManager.removeView(prstlayout);
+        prstlayout = callayout;
+        calmoveBtn.setText(btykao_expd[curPower]);
     }
 
     private int dip2px(Context context, float dpValue) {
@@ -628,10 +945,18 @@ public class RealService extends Service {
     private List<String> getmenulist() {
 
         List<String> mdata = new ArrayList<String>();
-        mdata.add("颜文字");
-        mdata.add("便签");
-        mdata.add("设置");
+        for (int cnt = 0; cnt < menutext.length; cnt++) {
+            mdata.add(menutext[cnt]);
+        }
+        return mdata;
+    }
 
+    private List<String> getcalgrid() {
+
+        List<String> mdata = new ArrayList<String>();
+        for (int cnt = 0; cnt < calbuttontext.length; cnt++) {
+            mdata.add(calbuttontext[cnt]);
+        }
         return mdata;
     }
 }
