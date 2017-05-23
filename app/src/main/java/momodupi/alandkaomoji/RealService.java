@@ -74,7 +74,7 @@ public class RealService extends Service {
     ClipboardManager clipbrd;
     ClipData clipData;
 
-    private boolean moveflag = false, hideflag = false, leftflag = false, dragflag = false, scrollheadflag = false;
+    private boolean moveflag = false, hideflag = false, leftflag = false, dragflag = false, scrollheadflag = false, fstnumflag = true;
 
     public final static int WM_MENU = 0;
     public final static int ST_MENU = 1;
@@ -87,6 +87,7 @@ public class RealService extends Service {
     public final static int MIN_CL = 2;
     public final static int MUL_CL = 3;
     public final static int DEV_CL = 4;
+    public final static int POW_CL = 5;
     private int calsymbol = 0;
 
     private int orirawx = 0, orirawy = 0, notex = 0, notey = 0, listdrag = 0;
@@ -95,13 +96,13 @@ public class RealService extends Service {
 
     private int curPower = 0;
     float transsetting = 1;
-    double fstnum = 0, sndnum = 0, aswnum = 0;
-    String fstnumstr = "", sndnumstr = "", aswnumstr = "";
+    double fstnum = 0, sndnum = 0;
+    String savenumstr = "", getnumstr = "";
 
     private static String[] menutext = {"颜文字", "便签", "计算器", "设置"};
 
     private static String[] calbuttontext = {
-            "%", "√", "x^y", "<",
+            "1/x", "√", "x^y", "<",
             "C", "M", "M+", "/",
             "7", "8", "9", "*",
             "4", "5", "6", "-",
@@ -467,196 +468,179 @@ public class RealService extends Service {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
                     case 0: {
-                        //%
+                        //1/x
+                        getnumstr = caltextView.getText().toString();
+                        fstnum = Double.valueOf(getnumstr);
+                        if (fstnum == 0) {
+                            getnumstr = "";
+                            caltextView.setText("error");
+                            fstnumflag = true;
+                            fstnum = 0;
+                            sndnum = 0;
+                            calsymbol = 0;
+                        }
+                        else {
+                            fstnum = Math.pow(fstnum, -1);
+                        }
+                        getnumstr = String.valueOf(fstnum);
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 1: {
-                        //root
+                        //sqrt
+                        getnumstr = caltextView.getText().toString();
+                        fstnum = Double.valueOf(getnumstr);
+                        if (fstnum < 0) {
+                            getnumstr = "";
+                            caltextView.setText("error");
+                            fstnumflag = true;
+                            fstnum = 0;
+                            sndnum = 0;
+                            calsymbol = 0;
+                        }
+                        else {
+                            fstnum = Math.sqrt(fstnum);
+                        }
+                        getnumstr = String.valueOf(fstnum);
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 2: {
                         //x^y
+                        calculator(POW_CL);
                     }
                     break;
                     case 3: {
                         //delete
-                        fstnumstr = fstnumstr.substring(0, fstnumstr.length() - 1);
-                        fstnum = Double.valueOf(fstnumstr);
+                        getnumstr = getnumstr.substring(0, getnumstr.length() - 1);
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 4: {
                         //C
+                        getnumstr = "";
+                        caltextView.setText(getnumstr);
+                        fstnumflag = true;
                         fstnum = 0;
-                        fstnumstr = "";
                         sndnum = 0;
-                        sndnumstr = "";
-                        aswnum = 0;
-                        aswnumstr = "";
+                        calsymbol = 0;
                     }
                     break;
                     case 5: {
                         //M
-                        sndnum = fstnum;
+                        caltextView.setText(savenumstr);
                     }
                     break;
                     case 6: {
                         //M+
-                        fstnum = sndnum;
+                        savenumstr = caltextView.getText().toString();
                     }
                     break;
                     case 7: {
                         ///
-                        calsymbol = DEV_CL;
-                        aswnum = fstnum;
-                        fstnum = 0;
-                        fstnumstr = "";
-                        aswnumstr = String.valueOf(aswnum);
-                        caltextView.setText(aswnumstr);
+                        calculator(DEV_CL);
                     }
                     break;
                     case 8: {
                         //7
-                        fstnumstr += "7";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += "7";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 9: {
                         //8
-                        fstnumstr += "8";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += "8";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 10: {
                         //9
-                        fstnumstr += "9";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += "9";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 11: {
                         //*
-                        calsymbol = MUL_CL;
-                        aswnum = fstnum;
-                        fstnum = 0;
-                        fstnumstr = "";
-                        aswnumstr = String.valueOf(aswnum);
-                        caltextView.setText(aswnumstr);
+                        calculator(MUL_CL);
                     }
                     break;
                     case 12: {
                         //4
-                        fstnumstr += "4";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += "4";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 13: {
                         //5
-                        fstnumstr += "5";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += "5";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 14: {
                         //6
-                        fstnumstr += "6";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += "6";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 15: {
                         //-
-                        calsymbol = MIN_CL;
-                        aswnum = fstnum;
-                        fstnum = 0;
-                        fstnumstr = "";
-                        aswnumstr = String.valueOf(aswnum);
-                        caltextView.setText(aswnumstr);
+                        calculator(MIN_CL);
                     }
                     break;
                     case 16: {
                         //1
-                        fstnumstr += "1";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += "1";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 17: {
                         //2
-                        fstnumstr += "2";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += "2";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 18: {
                         //3
-                        fstnumstr += "3";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += "3";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 19: {
                         //+
-                        calsymbol = ADD_CL;
-                        aswnum = fstnum;
-                        fstnum = 0;
-                        fstnumstr = "";
-                        aswnumstr = String.valueOf(aswnum);
-                        caltextView.setText(aswnumstr);
+                        calculator(ADD_CL);
                     }
                     break;
                     case 20: {
                         //nega/posi
-                        fstnum = Double.valueOf(fstnumstr);
-                        aswnum = fstnum * -1;
+                        getnumstr = caltextView.getText().toString();
+                        fstnum = Double.valueOf(getnumstr);
+                        fstnum *= -1;
+                        getnumstr = String.valueOf(fstnum);
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 21: {
                         //0
-                        fstnumstr += "0";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        caltextView.setText(caltextView.getText().toString() + "0");
                     }
                     break;
                     case 22: {
                         //.
-                        fstnumstr += ".";
-                        fstnum = Double.valueOf(fstnumstr);
-                        caltextView.setText(fstnumstr);
+                        getnumstr += ".";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 23: {
                         //=
-                        switch (calsymbol) {
-                            case ADD_CL: {
-                                aswnum += fstnum;
-                            }
-                            case MIN_CL: {
-                                aswnum -= fstnum;
-                            }
-                            case MUL_CL: {
-                                aswnum *= fstnum;
-                            }
-                            case DEV_CL: {
-                                aswnum /= fstnum;
-                            }
-                            default: {
-                                ;
-                            }
-                        }
-                        fstnum = aswnum;
+                        calculator(calsymbol);
                         calsymbol = 0;
+                        fstnumflag = true;
                     }
                     break;
                     default: {
                         ;
                     }
                 }
-
-
-
             }
         });
 
@@ -697,7 +681,7 @@ public class RealService extends Service {
     {
         if(wmlayout != null)
         {
-            mWindowManager.removeView(wmlayout);
+            mWindowManager.removeView(kaolayout);
         }
         super.onDestroy();
     }
@@ -807,7 +791,7 @@ public class RealService extends Service {
         }
     }
 */
-    public void setlocation() {
+    private void setlocation() {
         if (leftflag == true) {
             wmParams.x = 0;
         }
@@ -816,7 +800,7 @@ public class RealService extends Service {
         }
     }
 
-    public void readpref() {
+    private void readpref() {
         SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
         transsetting = preferences.getFloat("transsetting", 50);
         leftflag = preferences.getBoolean("leftsetting", false);
@@ -829,7 +813,7 @@ public class RealService extends Service {
         notedata = preferences.getString("note", null);
     }
 
-    public void savepref() {
+    private void savepref() {
         SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
 
         int cnt;
@@ -876,7 +860,7 @@ public class RealService extends Service {
         hidemoveBtn.setText(btykao_hide[curPower]);
     }
 
-    public void setoriinterface() {
+    private void setoriinterface() {
         wmParams.width = prstlayout.getWidth();
         wmParams.height = prstlayout.getHeight();
         hideflag = false;
@@ -930,6 +914,131 @@ public class RealService extends Service {
         mWindowManager.removeView(prstlayout);
         prstlayout = callayout;
         calmoveBtn.setText(btykao_expd[curPower]);
+    }
+
+    private void calculator(int cs) {
+        getnumstr = caltextView.getText().toString();
+
+        if (fstnumflag == true) {
+            fstnum = Double.valueOf(getnumstr);
+            calsymbol = cs;
+        }
+        else {
+            sndnum = Double.valueOf(getnumstr);
+            switch (calsymbol) {
+                case ADD_CL: {
+                    if (getnumstr == "") {
+                        getnumstr = "0";
+                    }
+
+                    if (fstnumflag == true) {
+                        fstnum = Double.valueOf(getnumstr);
+                    }
+                    else {
+                        sndnum = Double.valueOf(getnumstr);
+                        fstnum += sndnum;
+                    }
+                    getnumstr = String.valueOf(fstnum);
+                    caltextView.setText(getnumstr);
+                    getnumstr = "";
+                }
+                break;
+                case MIN_CL: {
+                    if (getnumstr == "") {
+                        getnumstr = "0";
+                    }
+
+                    if (fstnumflag == true) {
+                        fstnum = Double.valueOf(getnumstr);
+                    }
+                    else {
+                        sndnum = Double.valueOf(getnumstr);
+                        fstnum -= sndnum;
+                    }
+                    getnumstr = String.valueOf(fstnum);
+                    caltextView.setText(getnumstr);
+                    getnumstr = "";
+                }
+                break;
+                case MUL_CL: {
+                    if (getnumstr == "") {
+                        getnumstr = "0";
+                    }
+
+                    if (fstnumflag == true) {
+                        fstnum = Double.valueOf(getnumstr);
+                    }
+                    else {
+                        sndnum = Double.valueOf(getnumstr);
+                        fstnum *= sndnum;
+                    }
+                    getnumstr = String.valueOf(fstnum);
+                    caltextView.setText(getnumstr);
+                    getnumstr = "";
+                }
+                break;
+                case DEV_CL: {
+                    if (getnumstr == "") {
+                        getnumstr = "0";
+                    }
+
+                    if (fstnumflag == true) {
+                        fstnum = Double.valueOf(getnumstr);
+                        getnumstr = String.valueOf(fstnum);
+                        caltextView.setText(getnumstr);
+                        getnumstr = "";
+                    }
+                    else {
+                        sndnum = Double.valueOf(getnumstr);
+                        if (sndnum == 0) {
+                            getnumstr = "";
+                            caltextView.setText("error");
+                            fstnumflag = true;
+                            fstnum = 0;
+                            sndnum = 0;
+                            calsymbol = 0;
+                        }
+                        else {
+                            fstnum /= sndnum;
+                            getnumstr = String.valueOf(fstnum);
+                            caltextView.setText(getnumstr);
+                            getnumstr = "";
+                        }
+                    }
+                }
+                break;
+                case POW_CL: {
+                    if (getnumstr == "") {
+                        getnumstr = "0";
+                    }
+
+                    if (fstnumflag == true) {
+                        fstnum = Double.valueOf(getnumstr);
+                    }
+                    else {
+                        sndnum = Double.valueOf(getnumstr);
+                        if (sndnum == 0) {
+                            fstnum = 0;
+                        }
+                        else {
+                            fstnum = Math.pow(fstnum, sndnum);
+                        }
+                    }
+                    getnumstr = String.valueOf(fstnum);
+                    caltextView.setText(getnumstr);
+                    getnumstr = "";
+                }
+                break;
+                default: {
+                    ;
+                }
+            }
+            calsymbol = cs;
+        }
+        fstnumflag = false;
+        getnumstr = String.valueOf(fstnum);
+        caltextView.setText(getnumstr);
+        getnumstr = "";
     }
 
     private int dip2px(Context context, float dpValue) {
