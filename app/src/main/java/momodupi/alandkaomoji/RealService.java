@@ -481,9 +481,9 @@ public class RealService extends Service {
                         }
                         else {
                             fstnum = Math.pow(fstnum, -1);
+                            getnumstr = String.valueOf(fstnum);
+                            caltextView.setText(getnumstr);
                         }
-                        getnumstr = String.valueOf(fstnum);
-                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 1: {
@@ -500,9 +500,9 @@ public class RealService extends Service {
                         }
                         else {
                             fstnum = Math.sqrt(fstnum);
+                            getnumstr = String.valueOf(fstnum);
+                            caltextView.setText(getnumstr);
                         }
-                        getnumstr = String.valueOf(fstnum);
-                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 2: {
@@ -512,6 +512,7 @@ public class RealService extends Service {
                     break;
                     case 3: {
                         //delete
+                        getnumstr = caltextView.getText().toString();
                         getnumstr = getnumstr.substring(0, getnumstr.length() - 1);
                         caltextView.setText(getnumstr);
                     }
@@ -621,7 +622,8 @@ public class RealService extends Service {
                     break;
                     case 21: {
                         //0
-                        caltextView.setText(caltextView.getText().toString() + "0");
+                        getnumstr += "0";
+                        caltextView.setText(getnumstr);
                     }
                     break;
                     case 22: {
@@ -930,7 +932,6 @@ public class RealService extends Service {
                     if (getnumstr == "") {
                         getnumstr = "0";
                     }
-
                     if (fstnumflag == true) {
                         fstnum = Double.valueOf(getnumstr);
                     }
@@ -939,25 +940,21 @@ public class RealService extends Service {
                         fstnum += sndnum;
                     }
                     getnumstr = String.valueOf(fstnum);
-                    caltextView.setText(getnumstr);
-                    getnumstr = "";
                 }
                 break;
                 case MIN_CL: {
                     if (getnumstr == "") {
                         getnumstr = "0";
                     }
-
                     if (fstnumflag == true) {
                         fstnum = Double.valueOf(getnumstr);
+                        getnumstr = String.valueOf(fstnum);
                     }
                     else {
                         sndnum = Double.valueOf(getnumstr);
                         fstnum -= sndnum;
+                        getnumstr = String.valueOf(fstnum);
                     }
-                    getnumstr = String.valueOf(fstnum);
-                    caltextView.setText(getnumstr);
-                    getnumstr = "";
                 }
                 break;
                 case MUL_CL: {
@@ -973,8 +970,6 @@ public class RealService extends Service {
                         fstnum *= sndnum;
                     }
                     getnumstr = String.valueOf(fstnum);
-                    caltextView.setText(getnumstr);
-                    getnumstr = "";
                 }
                 break;
                 case DEV_CL: {
@@ -985,14 +980,11 @@ public class RealService extends Service {
                     if (fstnumflag == true) {
                         fstnum = Double.valueOf(getnumstr);
                         getnumstr = String.valueOf(fstnum);
-                        caltextView.setText(getnumstr);
-                        getnumstr = "";
                     }
                     else {
                         sndnum = Double.valueOf(getnumstr);
                         if (sndnum == 0) {
-                            getnumstr = "";
-                            caltextView.setText("error");
+                            getnumstr = "error";
                             fstnumflag = true;
                             fstnum = 0;
                             sndnum = 0;
@@ -1001,8 +993,6 @@ public class RealService extends Service {
                         else {
                             fstnum /= sndnum;
                             getnumstr = String.valueOf(fstnum);
-                            caltextView.setText(getnumstr);
-                            getnumstr = "";
                         }
                     }
                 }
@@ -1014,19 +1004,25 @@ public class RealService extends Service {
 
                     if (fstnumflag == true) {
                         fstnum = Double.valueOf(getnumstr);
+                        getnumstr = String.valueOf(fstnum);
                     }
                     else {
                         sndnum = Double.valueOf(getnumstr);
                         if (sndnum == 0) {
                             fstnum = 0;
                         }
+                        else if (sndnum > 100) {
+                            getnumstr = "out of range";
+                            fstnumflag = true;
+                            fstnum = 0;
+                            sndnum = 0;
+                            calsymbol = 0;
+                        }
                         else {
                             fstnum = Math.pow(fstnum, sndnum);
+                            getnumstr = String.valueOf(fstnum);
                         }
                     }
-                    getnumstr = String.valueOf(fstnum);
-                    caltextView.setText(getnumstr);
-                    getnumstr = "";
                 }
                 break;
                 default: {
@@ -1036,7 +1032,10 @@ public class RealService extends Service {
             calsymbol = cs;
         }
         fstnumflag = false;
-        getnumstr = String.valueOf(fstnum);
+        if (getnumstr.indexOf(".") > 0) {
+            getnumstr = getnumstr.replaceAll("0+?$", "");
+            getnumstr = getnumstr.replaceAll("[.]$", "");
+        }
         caltextView.setText(getnumstr);
         getnumstr = "";
     }
