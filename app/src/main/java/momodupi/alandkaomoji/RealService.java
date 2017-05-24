@@ -441,7 +441,7 @@ public class RealService extends Service {
         calmoveBtn = (Button) callayout.findViewById(R.id.calmoveBtn);
         calmoveBtn.setText(butstr);
         caltextView = (TextView) callayout.findViewById(R.id.caltextView);
-        caltextView.setText("0");
+        caltextView.setText("");
         calgridView = (GridView) callayout.findViewById(R.id.calgridView);
         caldata = getcalgrid();
         calarrayAdapter = new ArrayAdapter<String>(this, R.layout.service_calitem, caldata);
@@ -513,7 +513,9 @@ public class RealService extends Service {
                     case 3: {
                         //delete
                         getnumstr = caltextView.getText().toString();
-                        getnumstr = getnumstr.substring(0, getnumstr.length() - 1);
+                        if (getnumstr.length() != 0) {
+                            getnumstr = getnumstr.substring(0, getnumstr.length() - 1);
+                        }
                         caltextView.setText(getnumstr);
                     }
                     break;

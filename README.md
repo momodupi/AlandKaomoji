@@ -24,3 +24,6 @@ Due to the API level and minimizing the size of apk, Only support Android 5.0 or
 ### 2017.5.20
 1. Re-add OVERLAY_PERMISSION to support Android 7.0 </br>
 2. Change the icon of the button </br>
+### 2017.5.24
+1. Add calculator </br>
+2. Redesign main menu, place kaomoji to the first view and pull down kaomoji list to enter menu </br>
