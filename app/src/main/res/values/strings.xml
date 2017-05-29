@@ -3,11 +3,13 @@
 
     <string name="servicesetting">后台</string>
 
-    <string name="back">&#62;</string>
-
-    <string name="brife">(σﾟ∀ﾟ)σ Powered by momodupi</string>
+    <string name="brife">(σﾟ∀ﾟ)σ\nPowered by momodupi</string>
 
     <string name="transsetting">透明度</string>
 
     <string name="leftsetting">左手模式</string>
+
+    <string name="rootsetting">root模式</string>
+
+    <string name="error">error</string>
 </resources>

@@ -27,20 +27,42 @@ public class BlankActivity extends Activity {
                 startService(intent);
                 this.finish();
             } else {
-                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
-                int cnt;
-                for (cnt = 0; cnt < getkaomojilist().size(); cnt++) {
-                    editor.putString("kao" + String.valueOf(cnt), getkaomojilist().get(cnt).toString());
-                }
-                editor.putInt("kaonum", cnt);
-                editor.putFloat("transsetting", 50);
-                editor.putBoolean("leftsetting", false);
-                editor.commit();
+                SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
+                if (!preferences.getBoolean("nonvirgin", false)) {
+                    SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
+                    int cnt;
+                    for (cnt = 0; cnt < getkaomojilist().size(); cnt++) {
+                        editor.putString("kao" + String.valueOf(cnt), getkaomojilist().get(cnt));
+                    }
+                    editor.putInt("kaonum", cnt);
+                    editor.putBoolean("firstrunning", true);
+                    editor.putFloat("transsetting", 50);
+                    editor.putBoolean("leftsetting", false);
+                    editor.putBoolean("rootsetting", false);
+                    editor.apply();
 
-                showpermissiondialog();
+                    showpermissiondialog();
+                }
             }
         }
         else {
+            SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
+            if (!preferences.getBoolean("nonvirgin", false)) {
+                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
+                int cnt;
+                for (cnt = 0; cnt < getkaomojilist().size(); cnt++) {
+                    editor.putString("kao" + String.valueOf(cnt), getkaomojilist().get(cnt));
+                }
+                editor.putInt("kaonum", cnt);
+                editor.putBoolean("firstrunning", true);
+                editor.putFloat("transsetting", 50);
+                editor.putBoolean("leftsetting", false);
+                editor.putBoolean("rootsetting", false);
+                editor.apply();
+
+                showpermissiondialog();
+            }
+
             Intent intent = new Intent(BlankActivity.this, RealService.class);
             startService(intent);
             this.finish();
@@ -83,7 +105,7 @@ public class BlankActivity extends Activity {
 
     private List<String> getkaomojilist() {
 
-        List<String> mdata = new ArrayList<String>();
+        List<String> mdata = new ArrayList<>();
         mdata.add("|∀ﾟ");
         mdata.add("(´ﾟДﾟ`)");
         mdata.add("(;´Д`)");

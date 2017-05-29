@@ -37,37 +37,41 @@
     <TextView
         android:text="@string/transsetting"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="30dp"
         android:id="@+id/transtextView"
         android:textAlignment="center"
-        android:gravity="center" />
+        android:textColor="#eeeeee"
+        android:gravity="bottom" />
 
     <SeekBar
         android:layout_width="match_parent"
-        android:layout_height="20dp"
+        android:layout_height="30dp"
         android:id="@+id/transseekBar" />
 
-    <TextView
-        android:text="@string/leftsetting"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:id="@+id/lefttextView"
-        android:textAlignment="center"
-        android:gravity="center" />
 
     <Switch
-        android:showText="false"
-        android:layout_width="72dp"
-        android:layout_height="wrap_content"
         android:id="@+id/leftswitch"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="@string/leftsetting"
+        android:textColor="#eeeeee"
+        android:textAlignment="center" />
+
+    <Switch
+        android:id="@+id/rootswitch"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="@string/rootsetting"
+        android:textColor="#eeeeee"
         android:textAlignment="center" />
 
     <TextView
         android:text="@string/brife"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="match_parent"
         android:id="@+id/brifetextView"
         android:textAlignment="center"
+        android:textSize="10dp"
         android:gravity="center" />
 
 </LinearLayout>

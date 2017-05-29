@@ -30,8 +30,6 @@
             android:layout_weight="1"
             android:background="@mipmap/back"
             android:textColor="#eeeeee" />
-
-
     </LinearLayout>
 
     <ListView
