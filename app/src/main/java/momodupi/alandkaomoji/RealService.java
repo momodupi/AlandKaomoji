@@ -37,8 +37,8 @@ import android.widget.Toast;
 
 
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.OutputStream;
+//import java.io.File;
+//import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -130,9 +130,6 @@ public class RealService extends Service {
         super.onCreate();
 
         readpref();
-        if (rootflag) {
-            rootflag = checkroot();
-        }
 
         wmParams = new WindowManager.LayoutParams();
         mWindowManager = (WindowManager)this.getSystemService(getApplication().WINDOW_SERVICE);
@@ -166,9 +163,9 @@ public class RealService extends Service {
 
 
         //kao layout
-        kaolayout = (LinearLayout) inflater.inflate(R.layout.service_kao, null);
+        kaolayout = (LinearLayout) inflater.inflate(R.layout.service_kao, kaolayout, true);
         kaolistView = (ListView) kaolayout.findViewById(R.id.kaolistView);
-        kaoarrayAdapter = new ArrayAdapter<String>(this, R.layout.service_item, kaodata);
+        kaoarrayAdapter = new ArrayAdapter<>(this, R.layout.service_item, kaodata);
         kaolistView.setAdapter(kaoarrayAdapter);
         kaocloseBtn = (Button) kaolayout.findViewById(R.id.kaocloseBtn);
         kaomoveBtn = (Button) kaolayout.findViewById(R.id.kaomoveBtn);
@@ -249,17 +246,12 @@ public class RealService extends Service {
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                if (firstVisibleItem == 0) {
-                    scrollheadflag = true;
-                }
-                else {
-                    scrollheadflag = false;
-                }
+                scrollheadflag = (firstVisibleItem == 0);
             }
         });
 
         //wm layout
-        wmlayout = (LinearLayout) inflater.inflate(R.layout.service_wm, null);
+        wmlayout = (LinearLayout) inflater.inflate(R.layout.service_wm, wmlayout, true);
         menulistView = (ListView) wmlayout.findViewById(R.id.menulistView);
         menumoveBtn = (Button) wmlayout.findViewById(R.id.menumoveBtn);
         menubackBtn = (Button) wmlayout.findViewById(R.id.menubackBtn);
@@ -322,7 +314,7 @@ public class RealService extends Service {
         });
 
         //setting layout
-        setttinglayout = (LinearLayout) inflater.inflate(R.layout.service_setting, null);
+        setttinglayout = (LinearLayout) inflater.inflate(R.layout.service_setting, setttinglayout, true);
         setbackBtn = (Button) setttinglayout.findViewById(R.id.setbackBtn);
         setmoveBtn = (Button) setttinglayout.findViewById(R.id.setmoveBtn);
         setmoveBtn.setText(butstr);
@@ -398,7 +390,7 @@ public class RealService extends Service {
         });
 
         //note layout
-        notelayout = (LinearLayout) inflater.inflate(R.layout.service_note, null);
+        notelayout = (LinearLayout) inflater.inflate(R.layout.service_note, notelayout, true);
         notebackBtn = (Button) notelayout.findViewById(R.id.notebackBtn);
         noteclearBtn = (Button) notelayout.findViewById(R.id.noteclearBtn);
         notemoveBtn = (Button) notelayout.findViewById(R.id.notemoveBtn);
@@ -455,7 +447,7 @@ public class RealService extends Service {
         });*/
 
         //hide layout
-        hidelayout = (LinearLayout) inflater.inflate(R.layout.service_hide, null);
+        hidelayout = (LinearLayout) inflater.inflate(R.layout.service_hide, hidelayout, true);
         hidemoveBtn = (Button) hidelayout.findViewById(R.id.hidemoveBtn);
 
         hidemoveBtn.setOnTouchListener(new View.OnTouchListener()
@@ -468,7 +460,7 @@ public class RealService extends Service {
         });
 
         //calculator layout
-        callayout = (LinearLayout) inflater.inflate(R.layout.service_calculator, null);
+        callayout = (LinearLayout) inflater.inflate(R.layout.service_calculator, callayout, true);
         calbackBtn = (Button) callayout.findViewById(R.id.calbackBtn);
         calmoveBtn = (Button) callayout.findViewById(R.id.calmoveBtn);
         calmoveBtn.setText(butstr);
@@ -680,7 +672,7 @@ public class RealService extends Service {
         });
 
         //pay layout
-        paylayout = (LinearLayout) inflater.inflate(R.layout.service_pay, null);
+        paylayout = (LinearLayout) inflater.inflate(R.layout.service_pay, paylayout, true);
         paylistView = (ListView) paylayout.findViewById(R.id.paylistView);
         payarrayAdapter = new ArrayAdapter<>(this, R.layout.service_item, getpaylist());
         paylistView.setAdapter(payarrayAdapter);
@@ -933,7 +925,11 @@ public class RealService extends Service {
         }
     }
 
-    private void setlocation() {
+    private void setlocation(int w, int h) {
+        getsideflag();
+        wmParams.width = dip2px(getApplicationContext(), w);
+        wmParams.height = dip2px(getApplicationContext(), h);
+
         if (hideflag) {
             if (leftflag) {
                 wmParams.x = 0;
@@ -965,6 +961,13 @@ public class RealService extends Service {
                 }
             }
         }
+    }
+
+    private void updatelayout(LinearLayout lt) {
+        mWindowManager.addView(lt, wmParams);
+        mWindowManager.updateViewLayout(lt, wmParams);
+        mWindowManager.removeView(prstlayout);
+        prstlayout = lt;
     }
 
     private void readpref() {
@@ -1007,25 +1010,11 @@ public class RealService extends Service {
         noteimageView.setImageBitmap(notebmp);
     }
 */
-    private void setnormalinterface() {
-        getsideflag();
-        wmParams.width = dip2px(getApplicationContext(), 108);
-        wmParams.height = dip2px(getApplicationContext(), 276);
-        hideflag = false;
-        setlocation();
-        mWindowManager.addView(wmlayout, wmParams);
-        mWindowManager.updateViewLayout(wmlayout, wmParams);
-        mWindowManager.removeView(prstlayout);
-        prstlayout = wmlayout;
-        menumoveBtn.setText(btykao_expd[curPower]);
-    }
 
     private void sethideinterface() {
         hidelayout.setAlpha(transsetting / 100);
-        wmParams.width = dip2px(getApplicationContext(), 60);
-        wmParams.height = dip2px(getApplicationContext(), 36);
         hideflag = true;
-        setlocation();
+        setlocation(60, 36);
         mWindowManager.addView(hidelayout, wmParams);
         mWindowManager.updateViewLayout(hidelayout, wmParams);
         mWindowManager.removeView(prstlayout);
@@ -1037,76 +1026,74 @@ public class RealService extends Service {
         wmParams.width = prstlayout.getWidth();
         wmParams.height = prstlayout.getHeight();
         hideflag = false;
-        setlocation();
+
+        if (sideflag == LEFT_SDIE) {
+            wmParams.x  = 0;
+        }
+        else if (sideflag == RIGHT_SDIE) {
+            wmParams.x = metric.widthPixels - wmParams.width;
+        }
+        else {
+            if (wmParams.x > (metric.widthPixels - wmParams.width)) {
+                wmParams.x = metric.widthPixels - wmParams.width;
+            }
+            else if (wmParams.x < 0) {
+                wmParams.x  = 0;
+            }
+
+            if (wmParams.y > (metric.heightPixels - wmParams.height)) {
+                wmParams.y = metric.heightPixels - wmParams.height;
+            }
+            else if (wmParams.y < 0) {
+                wmParams.y  = 0;
+            }
+        }
+
         mWindowManager.addView(prstlayout, wmParams);
         mWindowManager.updateViewLayout(prstlayout, wmParams);
         mWindowManager.removeView(hidelayout);
+        setmoveBtn.setText(btykao_expd[curPower]);
+    }
+
+    private void setnormalinterface() {
+        setlocation(108, 276);
+        updatelayout(wmlayout);
+        menumoveBtn.setText(btykao_expd[curPower]);
     }
 
     private void setsettinginterface() {
-        getsideflag();
-        wmParams.width = dip2px(getApplicationContext(), 108);
-        wmParams.height = dip2px(getApplicationContext(), 276);
         hideflag = false;
-        setlocation();
-        mWindowManager.addView(setttinglayout, wmParams);
-        mWindowManager.updateViewLayout(setttinglayout, wmParams);
-        mWindowManager.removeView(prstlayout);
-        prstlayout = setttinglayout;
+        setlocation(108, 276);
+        updatelayout(setttinglayout);
         setmoveBtn.setText(btykao_expd[curPower]);
     }
 
     private void setnoteinterface() {
-        getsideflag();
-        //wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
-        wmParams.width = dip2px(getApplicationContext(), 200);
-        wmParams.height = dip2px(getApplicationContext(), 300);
         hideflag = false;
-        setlocation();
-        mWindowManager.addView(notelayout, wmParams);
-        mWindowManager.updateViewLayout(notelayout, wmParams);
-        mWindowManager.removeView(prstlayout);
-        prstlayout = notelayout;
+        setlocation(200, 300);
+        updatelayout(notelayout);
         notemoveBtn.setText(btykao_expd[curPower]);
         noteeditText.setText(notedata);
     }
 
     private void setkaomojiinterface() {
-        getsideflag();
-        wmParams.width = dip2px(getApplicationContext(), 108);
-        wmParams.height = dip2px(getApplicationContext(), 276);
         hideflag = false;
-        setlocation();
-        mWindowManager.addView(kaolayout, wmParams);
-        mWindowManager.updateViewLayout(kaolayout, wmParams);
-        mWindowManager.removeView(prstlayout);
-        prstlayout = kaolayout;
+        setlocation(108, 276);
+        updatelayout(kaolayout);
         kaomoveBtn.setText(btykao_expd[curPower]);
     }
 
     private void setcalinterface() {
-        getsideflag();
-        wmParams.width = dip2px(getApplicationContext(), 200);
-        wmParams.height = dip2px(getApplicationContext(), 300);
         hideflag = false;
-        setlocation();
-        mWindowManager.addView(callayout, wmParams);
-        mWindowManager.updateViewLayout(callayout, wmParams);
-        mWindowManager.removeView(prstlayout);
-        prstlayout = callayout;
+        setlocation(200, 300);
+        updatelayout(callayout);
         calmoveBtn.setText(btykao_expd[curPower]);
     }
 
     private void setpayinterface() {
-        getsideflag();
-        wmParams.width = dip2px(getApplicationContext(), 108);
-        wmParams.height = dip2px(getApplicationContext(), 276);
         hideflag = false;
-        setlocation();
-        mWindowManager.addView(paylayout, wmParams);
-        mWindowManager.updateViewLayout(paylayout, wmParams);
-        mWindowManager.removeView(prstlayout);
-        prstlayout = paylayout;
+        setlocation(108, 276);
+        updatelayout(paylayout);
         paymoveBtn.setText(btykao_expd[curPower]);
     }
 
@@ -1238,12 +1225,12 @@ public class RealService extends Service {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
-
+/*
     private int px2dip(Context context, float pxValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (pxValue / scale + 0.5f);
     }
-
+*/
     private int sucmd(String cmd) {
         try {
             Process process = Runtime.getRuntime().exec("su");
@@ -1264,11 +1251,7 @@ public class RealService extends Service {
 
     private boolean checkroot() {
         try {
-            if (sucmd("chmod 777" + getPackageCodePath()) != -1) {
-                return true;
-            } else {
-                return false;
-            }
+            return (sucmd("chmod 777" + getPackageCodePath()) != -1);
         } catch (Exception e) {
             return false;
         }
