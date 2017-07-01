@@ -34,3 +34,7 @@ Due to the API level and minimizing the size of apk, Alandkaomoji only supports 
 1. Add pay shortcut supporting wechat and alipay(need ROOT)</br>
 2. Change move strategy</br>
 3. fix bug
+### 2017.7.1
+1. Redesign pay shortcut</br>
+2. Fix bug of moving in landscape screen</br>
+3. Repaire bug of permission request in Andoird 7.0</br>

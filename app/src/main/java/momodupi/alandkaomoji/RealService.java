@@ -12,12 +12,20 @@ import android.content.SharedPreferences;
 //import android.graphics.Canvas;
 //import android.graphics.Color;
 //import android.graphics.Paint;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.hardware.SensorManager;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 //import android.os.Process;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AbsListView;
@@ -72,14 +80,19 @@ public class RealService extends Service {
     ListView menulistView, kaolistView, paylistView;
     GridView calgridView;
 
+    //SensorManager sensorManager;
+    OrientationEventListener orientationEventListener;
+
     //private Bitmap notebmp, notebmpbak;
     //private Canvas notecanvas;
     //private Paint notepaint;
+    CountDownTimer countDownTimer;
 
     ClipboardManager clipbrd;
     ClipData clipData;
 
-    private boolean moveflag = false, hideflag = false, leftflag = false, rootflag = false, dragflag = false, scrollheadflag = false, fstnumflag = true;
+    private boolean moveableflag = false, moveflag = false, hideflag = false, leftflag = false, rootflag = false, dragflag = false, scrollheadflag = false;
+    private boolean fstnumflag = true, screenlandscape = false, wehcatinstalled = false, alipayinstalled = false;
     private int sideflag = 0;
     public final static int NON_SDIE = 0;
     public final static int LEFT_SDIE = 1;
@@ -102,7 +115,6 @@ public class RealService extends Service {
 
     private int orirawx = 0, orirawy = 0, listdrag = 0;
     //private int notex = 0, notey = 0;
-
     private int curPower = 0;
     private float transsetting = 1;
     private double fstnum = 0, sndnum = 0;
@@ -161,6 +173,22 @@ public class RealService extends Service {
         LayoutInflater inflater = LayoutInflater.from(getApplication());
         clipbrd = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
 
+        /*
+        sensorManager = (SensorManager) this.getSystemService(this.SENSOR_SERVICE);
+        orientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
+            @Override
+            public void onOrientationChanged(int orientation) {
+
+                screenlandscape=  ((orientation >= 0 && orientation <= 45) || (orientation >= 315 && orientation <= 360)) ? true : false;
+                Log.i("MyOrientationDetector ","onOrientationChanged:" + screenlandscape);
+            }
+        };
+        if (orientationEventListener.canDetectOrientation()) {
+            orientationEventListener.enable();
+        }
+        else {
+            orientationEventListener.disable();
+        }*/
 
         //kao layout
         kaolayout = (LinearLayout) inflater.inflate(R.layout.service_kao, kaolayout, true);
@@ -700,6 +728,13 @@ public class RealService extends Service {
         paylistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (!(wehcatinstalled || alipayinstalled)) {
+                    position = 999;
+                }
+                else if (alipayinstalled && (!wehcatinstalled)) {
+                    position += 3;
+                }
+
                 switch (position) {
                     case 0: {
                         //wechat pay
@@ -732,6 +767,7 @@ public class RealService extends Service {
                     }
                     break;
                     default: {
+                        Toast.makeText(getApplicationContext(), "没有就别点啦！", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -763,19 +799,35 @@ public class RealService extends Service {
 
 
     @Override
-    public IBinder onBind(Intent intent)
-    {
+    public IBinder onBind(Intent intent) {
         return null;
     }
 
     @Override
-    public void onDestroy()
-    {
-        if(wmlayout != null)
-        {
+    public void onDestroy() {
+        if(wmlayout != null) {
             mWindowManager.removeView(kaolayout);
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration oriConfig) {
+        super.onConfigurationChanged(oriConfig);
+        if (oriConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (!screenlandscape) {
+                screenlandscape = true;
+                metric = new DisplayMetrics();
+                mWindowManager.getDefaultDisplay().getMetrics(metric);
+            }
+        }
+        else if (oriConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (screenlandscape) {
+                screenlandscape = false;
+                metric = new DisplayMetrics();
+                mWindowManager.getDefaultDisplay().getMetrics(metric);
+            }
+        }
     }
 
     private void wmguesture(MotionEvent event, int itfc) {
@@ -812,6 +864,7 @@ public class RealService extends Service {
             default: {
             }
         }
+
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
@@ -1093,6 +1146,8 @@ public class RealService extends Service {
     private void setpayinterface() {
         hideflag = false;
         setlocation(108, 276);
+        payarrayAdapter = new ArrayAdapter<>(this, R.layout.service_item, getpaylist());
+        paylistView.setAdapter(payarrayAdapter);
         updatelayout(paylayout);
         paymoveBtn.setText(btykao_expd[curPower]);
     }
@@ -1259,56 +1314,51 @@ public class RealService extends Service {
 
 
     private List<String> getmenulist(boolean rf) {
-        boolean sts;
         List<String> mdata = new ArrayList<>();
-        /*
-        for (String element: menutext) {
-            mdata.add(element);
+        boolean sts = (rf)? Collections.addAll(mdata, menutext_r): Collections.addAll(mdata, menutext_nr);
+        if (!sts) {
+            mdata.add(getResources().getString(R.string.error));
         }
-
-
-        for (int cnt = 0; cnt < menutext.length; cnt++) {
-            mdata.add(menutext[cnt]);
-        }*/
-        if (rf) {
-            sts = Collections.addAll(mdata, menutext_r);
-        }
-        else {
-            sts = Collections.addAll(mdata, menutext_nr);
-        }
-
-        if (sts) {
-            return mdata;
-        }
-        else {
-            mdata.add("error");
-            return mdata;
-        }
+        return mdata;
     }
 
     private List<String> getcalgrid() {
-
         List<String> mdata = new ArrayList<>();
         boolean sts = Collections.addAll(mdata, calbuttontext);
-        if (sts) {
-            return mdata;
+        if (!sts) {
+            mdata.add(getResources().getString(R.string.error));
         }
-        else {
-            mdata.add("error");
-            return mdata;
-        }
+        return mdata;
     }
 
     private List<String> getpaylist() {
-
         List<String> mdata = new ArrayList<>();
-        boolean sts = Collections.addAll(mdata, paymenutext);
-        if (sts) {
-            return mdata;
+
+        PackageManager packageManager = getApplicationContext().getPackageManager();
+        try {
+            packageManager.getPackageInfo("com.tencent.mm", PackageManager.GET_ACTIVITIES);
+            wehcatinstalled = true;
+            mdata.add(paymenutext[0]);
+            mdata.add(paymenutext[1]);
+            mdata.add(paymenutext[2]);
+        } catch (PackageManager.NameNotFoundException e) {
+            wehcatinstalled = false;
         }
-        else {
-            mdata.add("error");
-            return mdata;
+
+        try {
+            packageManager.getPackageInfo("com.eg.android.AlipayGphone", PackageManager.GET_ACTIVITIES);
+            alipayinstalled = true;
+            mdata.add(paymenutext[3]);
+            mdata.add(paymenutext[4]);
+            mdata.add(paymenutext[5]);
+        } catch (PackageManager.NameNotFoundException e) {
+            alipayinstalled = false;
         }
+
+        if (!(wehcatinstalled || alipayinstalled)) {
+            mdata.add(getResources().getString(R.string.noapp));
+        }
+
+        return mdata;
     }
 }

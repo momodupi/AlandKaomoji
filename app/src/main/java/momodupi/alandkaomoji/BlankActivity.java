@@ -5,9 +5,11 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -27,6 +29,8 @@ public class BlankActivity extends Activity {
                 startService(intent);
                 this.finish();
             } else {
+                showpermissiondialog();
+
                 SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
                 if (!preferences.getBoolean("nonvirgin", false)) {
                     SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
@@ -40,8 +44,6 @@ public class BlankActivity extends Activity {
                     editor.putBoolean("leftsetting", false);
                     editor.putBoolean("rootsetting", false);
                     editor.apply();
-
-                    showpermissiondialog();
                 }
             }
         }
@@ -59,8 +61,6 @@ public class BlankActivity extends Activity {
                 editor.putBoolean("leftsetting", false);
                 editor.putBoolean("rootsetting", false);
                 editor.apply();
-
-                showpermissiondialog();
             }
 
             Intent intent = new Intent(BlankActivity.this, RealService.class);
@@ -76,6 +76,7 @@ public class BlankActivity extends Activity {
     }
 
     private void showpermissiondialog() {
+
         AlertDialog.Builder builder = new AlertDialog.Builder(BlankActivity.this);
         builder.setTitle("需要权限Σ( ﾟдﾟ)");
         builder.setMessage("请设置允许在其他应用的上层显示(=ﾟωﾟ)=");
@@ -83,7 +84,8 @@ public class BlankActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 try{
-                    Intent  intent=new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                    Intent intent=new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
                     startActivity(intent);
                     onDestroy();
                 }catch (Exception e)
@@ -100,7 +102,7 @@ public class BlankActivity extends Activity {
             }
         });
         AlertDialog dialog = builder.create();
-        dialog.show();
+        dialog.show();/**/
     }
 
     private List<String> getkaomojilist() {

@@ -7,11 +7,11 @@
         android:icon="@mipmap/logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault.Dialog">
+        android:configChanges="screenSize|orientation"
+        android:theme="@android:style/Theme.Material.Dialog.NoActionBar.MinWidth">
         <activity android:name=".BlankActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -20,5 +20,6 @@
     </application>
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
 
 </manifest>

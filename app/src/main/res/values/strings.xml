@@ -11,5 +11,7 @@
 
     <string name="rootsetting">root模式</string>
 
+    <string name="noapp">无应用支持</string>
+
     <string name="error">error</string>
 </resources>
