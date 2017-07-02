@@ -31,7 +31,6 @@
             android:background="@mipmap/close"
             android:textColor="#eeeeee" />
 
-
     </LinearLayout>
 
     <ListView

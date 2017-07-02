@@ -72,6 +72,7 @@
         android:id="@+id/brifetextView"
         android:textAlignment="center"
         android:textSize="10dp"
+        android:textColor="#eeeeee"
         android:gravity="center" />
 
 </LinearLayout>

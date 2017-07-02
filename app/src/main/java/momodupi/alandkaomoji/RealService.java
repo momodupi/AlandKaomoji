@@ -1,6 +1,10 @@
 package momodupi.alandkaomoji;
 
-import android.app.Service;
+import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
+//import android.app.Instrumentation;
+//import android.app.Service;
+//import android.app.UiAutomation;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -16,18 +20,22 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.hardware.SensorManager;
-import android.os.CountDownTimer;
-import android.os.IBinder;
+//import android.hardware.SensorManager;
+//import android.os.CountDownTimer;
+//import android.os.IBinder;
 //import android.os.Process;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
+//import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
+//import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -47,6 +55,7 @@ import android.widget.Toast;
 import java.io.DataOutputStream;
 //import java.io.File;
 //import java.io.OutputStream;
+//import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,7 +66,7 @@ import java.util.List;
  */
 
 
-public class RealService extends Service {
+public class RealService extends AccessibilityService  {
 
     LinearLayout prstlayout, wmlayout, setttinglayout, notelayout, kaolayout, callayout, paylayout, hidelayout;
 
@@ -86,7 +95,7 @@ public class RealService extends Service {
     //private Bitmap notebmp, notebmpbak;
     //private Canvas notecanvas;
     //private Paint notepaint;
-    CountDownTimer countDownTimer;
+    //CountDownTimer countDownTimer;
 
     ClipboardManager clipbrd;
     ClipData clipData;
@@ -111,11 +120,17 @@ public class RealService extends Service {
     public final static int MUL_CL = 3;
     public final static int DEV_CL = 4;
     public final static int POW_CL = 5;
+
+    public final static int DRG_LEFT = 1;
+    public final static int DRG_RIGHT = 2;
+    public final static int DRG_UP = 3;
+    public final static int DRG_DOWN = 4;
+
     private int calsymbol = 0;
 
-    private int orirawx = 0, orirawy = 0, listdrag = 0;
+    private int orirawx = 0, orirawy = 0, gstrawx = 0, gstrawy = 0, listdrag = 0;
     //private int notex = 0, notey = 0;
-    private int curPower = 0;
+    private int curPower = 0, gstdrag = 0;
     private float transsetting = 1;
     private double fstnum = 0, sndnum = 0;
     private String savenumstr = "", getnumstr = "", butstr;
@@ -137,9 +152,16 @@ public class RealService extends Service {
     private static String[] btykao_hide = {"|дﾟ )", "|д` )", "|-` )", "|∀` )", "|∀` )"};
 
     @Override
-    public void onCreate()
+    public void onServiceConnected()
     {
-        super.onCreate();
+        //super.onCreate();
+        Log.i("TAG", "config success!");
+        AccessibilityServiceInfo accessibilityServiceInfo = new AccessibilityServiceInfo();
+        accessibilityServiceInfo.packageNames = new String[]{getPackageName()};
+        accessibilityServiceInfo.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;
+        accessibilityServiceInfo.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
+        accessibilityServiceInfo.notificationTimeout = 1000;
+        setServiceInfo(accessibilityServiceInfo);
 
         readpref();
 
@@ -478,11 +500,19 @@ public class RealService extends Service {
         hidelayout = (LinearLayout) inflater.inflate(R.layout.service_hide, hidelayout, true);
         hidemoveBtn = (Button) hidelayout.findViewById(R.id.hidemoveBtn);
 
-        hidemoveBtn.setOnTouchListener(new View.OnTouchListener()
-        {
+        hidemoveBtn.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 wmguesture(event, HD_MENU);
+                return false;
+            }
+        });
+
+        hidemoveBtn.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                //Toast.makeText(getApplicationContext(), "longclick", Toast.LENGTH_SHORT).show();
+                moveableflag = !moveflag;
                 return false;
             }
         });
@@ -797,12 +827,25 @@ public class RealService extends Service {
         touchBtn = kaomoveBtn;
     }
 
-
+/*
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
+*/
+    @Override
+    public void onAccessibilityEvent(AccessibilityEvent event) {
 
+    }
+
+    @Override
+    public void onInterrupt() {
+        if(wmlayout != null) {
+            mWindowManager.removeView(kaolayout);
+        }
+        super.onDestroy();
+    }
+/*
     @Override
     public void onDestroy() {
         if(wmlayout != null) {
@@ -810,7 +853,7 @@ public class RealService extends Service {
         }
         super.onDestroy();
     }
-
+*/
     @Override
     public void onConfigurationChanged(Configuration oriConfig) {
         super.onConfigurationChanged(oriConfig);
@@ -865,20 +908,31 @@ public class RealService extends Service {
             }
         }
 
-
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
-
+                moveflag = false;
+                moveableflag = false;
                 orirawx = (int) event.getRawX();
                 orirawy = (int) event.getRawY();
+                gstrawx = orirawx;
+                gstrawy = orirawy;
 
                 butstr = (String) touchBtn.getText();
                 touchBtn.setText("( ﾟ∀。)");
             }
             break;
             case MotionEvent.ACTION_MOVE: {
-                wmParams.x += (int) event.getRawX() - orirawx;
-                wmParams.y += (int) event.getRawY() - orirawy;
+                if (((int) event.getRawX() - orirawx > 2)
+                        || ((int) event.getRawY() - orirawy < -2)
+                        || ((int) event.getRawY() - orirawy > 2)
+                        || ((int) event.getRawY() - orirawy < -2)) {
+                    moveflag = true;
+                }
+
+                if (!((itfc == HD_MENU) && (!moveableflag))) {
+                    wmParams.x += (int) event.getRawX() - orirawx;
+                    wmParams.y += (int) event.getRawY() - orirawy;
+                }
 
                 if (wmParams.x > (metric.widthPixels - wmParams.width)) {
                     wmParams.x = metric.widthPixels - wmParams.width;
@@ -902,36 +956,81 @@ public class RealService extends Service {
                 if (itfc != HD_MENU) {
                     mWindowManager.updateViewLayout(prstlayout, wmParams);
                 }
-                else  {
-                    mWindowManager.updateViewLayout(hidelayout, wmParams);
+                else {
+                    if (moveableflag) {
+                        mWindowManager.updateViewLayout(hidelayout, wmParams);
+                    }
                 }
-
-                if (((int) event.getRawX() - orirawx > 2)
-                        || ((int) event.getRawY() - orirawy < -2)
-                        || ((int) event.getRawY() - orirawy > 2)
-                        || ((int) event.getRawY() - orirawy < -2)) {
-                    moveflag = true;
-                }
+                //Log.e("Movable", "" + moveableflag);
+                //Log.e("Move", "" + moveflag);
 
                 orirawx = (int) event.getRawX();
                 orirawy = (int) event.getRawY();
             }
             break;
-            case MotionEvent.ACTION_UP: {
+           case MotionEvent.ACTION_UP: {
                 touchBtn.setText(butstr);
 
-                if (!moveflag) {
-                    if (itfc == HD_MENU) {
-                        setoriinterface();
+                if ((itfc == HD_MENU) && (!moveableflag) && (moveflag)) {
+                    float rawy = (float) (orirawy - gstrawy);
+                    float rawx = (float) (orirawx - gstrawx);
+                    float rawk = rawy / rawx;
+
+                    if ((rawk <= 1) && (rawk >= -1)) {
+                        if (rawx <= 0) {
+                            gstdrag = DRG_LEFT;
+                        }
+                        else {
+                            gstdrag = DRG_RIGHT;
+                        }
                     }
                     else {
-                        sethideinterface();
+                        if (rawy >= 0) {
+                            gstdrag = DRG_DOWN;
+                        }
+                        else {
+                            gstdrag = DRG_UP;
+                        }
+                    }
+                    //Log.e("Gesture", "" + gstdrag);
+                     switch (gstdrag) {
+                        case DRG_LEFT: {
+                            this.performGlobalAction(GLOBAL_ACTION_BACK);
+                        }
+                        break;
+                        case DRG_RIGHT: {
+                            this.performGlobalAction(GLOBAL_ACTION_RECENTS);
+                        }
+                        break;
+                        case DRG_DOWN: {
+                            this.performGlobalAction(GLOBAL_ACTION_HOME);
+                        }
+                        break;
+                        case DRG_UP: {
+                            this.performGlobalAction(GLOBAL_ACTION_HOME);
+                        }
+                        break;
+                        default: {
+
+                        }
                     }
                 }
+
+               gstdrag = 0;
+
+               if (!moveflag) {
+                   if (itfc == HD_MENU) {
+                       setoriinterface();
+                   }
+                   else {
+                       sethideinterface();
+                   }
+               }
                 moveflag = false;
             }
             break;
             default: {
+
             }
         }
     }
@@ -964,6 +1063,7 @@ public class RealService extends Service {
         }
     }
 */
+
     private void getsideflag() {
         if (wmParams.x >= (metric.widthPixels - wmParams.width)) {
             wmParams.x = metric.widthPixels - wmParams.width;
@@ -982,7 +1082,7 @@ public class RealService extends Service {
         getsideflag();
         wmParams.width = dip2px(getApplicationContext(), w);
         wmParams.height = dip2px(getApplicationContext(), h);
-
+/*
         if (hideflag) {
             if (leftflag) {
                 wmParams.x = 0;
@@ -1012,6 +1112,28 @@ public class RealService extends Service {
                 else if (wmParams.y < 0) {
                     wmParams.y  = 0;
                 }
+            }
+        }
+        */
+        if (sideflag == LEFT_SDIE) {
+            wmParams.x  = 0;
+        }
+        else if (sideflag == RIGHT_SDIE) {
+            wmParams.x = metric.widthPixels - wmParams.width;
+        }
+        else {
+            if (wmParams.x > (metric.widthPixels - wmParams.width)) {
+                wmParams.x = metric.widthPixels - wmParams.width;
+            }
+            else if (wmParams.x < 0) {
+                wmParams.x  = 0;
+            }
+
+            if (wmParams.y > (metric.heightPixels - wmParams.height)) {
+                wmParams.y = metric.heightPixels - wmParams.height;
+            }
+            else if (wmParams.y < 0) {
+                wmParams.y  = 0;
             }
         }
     }
@@ -1067,7 +1189,8 @@ public class RealService extends Service {
     private void sethideinterface() {
         hidelayout.setAlpha(transsetting / 100);
         hideflag = true;
-        setlocation(60, 36);
+        //setlocation(60, 36);
+        setlocation(48, 48);
         mWindowManager.addView(hidelayout, wmParams);
         mWindowManager.updateViewLayout(hidelayout, wmParams);
         mWindowManager.removeView(prstlayout);

@@ -38,3 +38,7 @@ Due to the API level and minimizing the size of apk, Alandkaomoji only supports 
 1. Redesign pay shortcut</br>
 2. Fix bug of moving in landscape screen</br>
 3. Repaire bug of permission request in Andoird 7.0</br>
+### 2017.7.3
+1. Use Accessibility Service instead original service for more function(OVERLAY_PERMISSION replaced by ACCESSIBILITY)</br>
+2. Redesign hide interface into circle button</br>
+3. Add new guesture</br>

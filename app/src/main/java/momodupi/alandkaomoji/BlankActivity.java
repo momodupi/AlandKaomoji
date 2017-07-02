@@ -1,7 +1,9 @@
 package momodupi.alandkaomoji;
 
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,7 +11,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -23,9 +27,12 @@ public class BlankActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blank);
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (Settings.canDrawOverlays(this)) {
+        if (Build.VERSION.SDK_INT >= 19) {
+            //if (Settings.canDrawOverlays(this)) {
+
+            if (isAccessibilitySettingsOn(getApplicationContext())) {
                 Intent intent = new Intent(BlankActivity.this, RealService.class);
+                //Intent intent = new Intent(ACCESSIBILITY_SERVICE);
                 startService(intent);
                 this.finish();
             } else {
@@ -61,11 +68,12 @@ public class BlankActivity extends Activity {
                 editor.putBoolean("leftsetting", false);
                 editor.putBoolean("rootsetting", false);
                 editor.apply();
-            }
+            }/**/
 
-            Intent intent = new Intent(BlankActivity.this, RealService.class);
-            startService(intent);
-            this.finish();
+            //Intent intent = new Intent(BlankActivity.this, RealService.class);
+            //startService(intent);
+            //this.finish();
+            Toast.makeText(getApplicationContext(), getResources().getString(R.string.nonvgn), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -75,17 +83,51 @@ public class BlankActivity extends Activity {
         super.onDestroy();
     }
 
+    private boolean isAccessibilitySettingsOn(Context mContext) {
+        int accessibilityEnabled = 0;
+        final String service = getPackageName() + "/" +RealService.class.getCanonicalName();
+
+        try {
+            accessibilityEnabled = Settings.Secure.getInt(mContext.getApplicationContext().getContentResolver(),
+                    android.provider.Settings.Secure.ACCESSIBILITY_ENABLED);
+            //Log.v("ACC", "accessibilityEnabled = " + accessibilityEnabled);
+        } catch (Settings.SettingNotFoundException e) {
+            //Log.e("ACC", "Error finding setting, default accessibility to not found: " + e.getMessage());
+        }
+        TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
+
+        if (accessibilityEnabled == 1) {
+            //Log.v("ACC", "***ACCESSIBILIY IS ENABLED*** -----------------");
+            String settingValue = Settings.Secure.getString(
+                    mContext.getApplicationContext().getContentResolver(),
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (settingValue != null) {
+                TextUtils.SimpleStringSplitter splitter = mStringColonSplitter;
+                splitter.setString(settingValue);
+                while (splitter.hasNext()) {
+                    String accessabilityService = splitter.next();
+                    //Log.v("ACC", "-------------- > accessabilityService :: " + accessabilityService);
+                    if (accessabilityService.equalsIgnoreCase(service)) {
+                        //Log.v(TAG, "We've found the correct setting - accessibility is switched on!");
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+/**/
     private void showpermissiondialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(BlankActivity.this);
-        builder.setTitle("需要权限Σ( ﾟдﾟ)");
-        builder.setMessage("请设置允许在其他应用的上层显示(=ﾟωﾟ)=");
-        builder.setPositiveButton("前去设置(＾o＾)ﾉ", new DialogInterface.OnClickListener() {
+        builder.setTitle(R.string.rqsttitle);
+        builder.setMessage(R.string.rqsttext);
+        builder.setPositiveButton(R.string.rqstyes, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 try{
-                    Intent intent=new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    Intent intent=new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                    //intent.setData(Uri.parse("package:" + getPackageName()));
                     startActivity(intent);
                     onDestroy();
                 }catch (Exception e)
@@ -94,10 +136,10 @@ public class BlankActivity extends Activity {
                 }
             }
         });
-        builder.setNegativeButton("不设咋地(╬ﾟдﾟ)", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(R.string.rqstno, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(getApplicationContext(), "那就算了吧( ´_ゝ`)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), getResources().getString(R.string.rqsttoast), Toast.LENGTH_SHORT).show();
                 onDestroy();
             }
         });
