@@ -42,3 +42,5 @@ Due to the API level and minimizing the size of apk, Alandkaomoji only supports 
 1. Use Accessibility Service instead original service for more function(OVERLAY_PERMISSION replaced by ACCESSIBILITY)</br>
 2. Redesign hide interface into circle button</br>
 3. Add new guesture</br>
+### 2017.7.4
+1. Redisign setting menu to acitivity</br>

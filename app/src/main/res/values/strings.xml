@@ -3,7 +3,17 @@
 
     <string name="rqsttitle">需要权限Σ( ﾟдﾟ)</string>
 
-    <string name="rqsttext">请设置辅助功能(=ﾟωﾟ)=</string>
+    <string name="ovlyrqsttext">请设置允许在其他应用的上层显示(=ﾟωﾟ)=</string>
+
+    <string name="acsblyrqsttext">请设置辅助功能(=ﾟωﾟ)=</string>
+
+    <string name="acsblypmttext">赋予权限吧ﾟ ∀ﾟ)ノ</string>
+
+    <string name="acsblyrfstext">取消权限吧ﾟ ∀ﾟ)ノ</string>
+
+    <string name="rootpmstext">获☆取☆root☆大☆成☆功</string>
+
+    <string name="rootrfstext">获☆取☆root☆大☆失☆败</string>
 
     <string name="rqstyes">前去设置(＾o＾)ﾉ</string>
 
@@ -17,9 +27,11 @@
 
     <string name="brife">(σﾟ∀ﾟ)σ\nPowered by momodupi</string>
 
+    <string name="wmsetting">悬浮窗</string>
+
     <string name="transsetting">透明度</string>
 
-    <string name="leftsetting">左手模式</string>
+    <string name="magsetting">磁吸模式</string>
 
     <string name="rootsetting">root模式</string>
 

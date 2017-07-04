@@ -3,13 +3,18 @@
     xmlns:anroid="http://schemas.android.com/tools"
     package="momodupi.alandkaomoji">
 
+
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.accessibilityservice.AccessibilityService" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:configChanges="screenSize|orientation"
-        android:theme="@android:style/Theme.Material.Dialog.NoActionBar.MinWidth">
+        android:theme="@android:style/Theme.Material">
         <activity android:name=".BlankActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,9 +28,8 @@
             </intent-filter>
 
         </service>
+
     </application>
 
-    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
-    <uses-permission android:name="android.accessibilityservice.AccessibilityService" />
 
 </manifest>

@@ -10,4 +10,108 @@
     android:paddingTop="0dp"
     tools:context="momodupi.alandkaomoji.BlankActivity">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal"
+        android:id="@+id/set1linearLayout">
+
+        <Switch
+            android:id="@+id/wmswitch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center_vertical"
+            android:layout_margin="20dp"
+            android:text="@string/wmsetting"
+            android:textSize="18sp"
+            android:textColor="#eeeeee" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:layout_below="@+id/set1linearLayout"
+        android:layout_alignParentStart="true"
+        android:id="@+id/set2linearLayout">
+
+        <Switch
+            android:id="@+id/rootswitch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center_vertical"
+            android:layout_margin="20dp"
+            android:text="@string/rootsetting"
+            android:textSize="18sp"
+            android:textColor="#eeeeee" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:layout_below="@+id/set2linearLayout"
+        android:layout_alignParentStart="true"
+        android:id="@+id/set3linearLayout">
+
+        <Switch
+            android:id="@+id/magswitch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center_vertical"
+            android:layout_margin="20dp"
+            android:text="@string/magsetting"
+            android:textSize="18sp"
+            android:textColor="#eeeeee" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:layout_below="@+id/set3linearLayout"
+        android:layout_alignParentStart="true"
+        android:id="@+id/set4linearLayout">
+
+        <TextView
+            android:id="@+id/transtextView"
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center_vertical"
+            android:layout_marginStart="20dp"
+            android:layout_weight="1"
+            android:text="@string/transsetting"
+            android:textSize="18sp"
+            android:textColor="#eeeeee" />
+
+        <SeekBar
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/transseekBar"
+            android:layout_gravity="center"
+            android:gravity="end"
+            android:layout_marginEnd="20dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <TextView
+        android:text="@string/brife"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/brifetextView"
+        android:layout_marginBottom="20dp"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textColor="#eeeeee"
+        android:gravity="bottom" />
+
 </RelativeLayout>

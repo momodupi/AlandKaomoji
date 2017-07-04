@@ -25,6 +25,7 @@ import android.content.res.Configuration;
 //import android.os.IBinder;
 //import android.os.Process;
 import android.os.Build;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -68,18 +69,16 @@ import java.util.List;
 
 public class RealService extends AccessibilityService  {
 
-    LinearLayout prstlayout, wmlayout, setttinglayout, notelayout, kaolayout, callayout, paylayout, hidelayout;
-
-    WindowManager.LayoutParams wmParams;
-    WindowManager mWindowManager;
+    LinearLayout wmlayout, notelayout, kaolayout, callayout, paylayout;
+    static LinearLayout prstlayout, hidelayout;
+    static WindowManager.LayoutParams wmParams;
+    static WindowManager mWindowManager;
     DisplayMetrics metric;
 
-    Button kaocloseBtn, kaomoveBtn, menumoveBtn, menubackBtn, notebackBtn, noteclearBtn, notemoveBtn, setbackBtn, setmoveBtn, calbackBtn, calmoveBtn, paymoveBtn, paybackBtn, hidemoveBtn;
+    Button kaocloseBtn, kaomoveBtn, menumoveBtn, menubackBtn, notebackBtn, noteclearBtn, notemoveBtn, calbackBtn, calmoveBtn, paymoveBtn, paybackBtn, hidemoveBtn;
     Button touchBtn = null;
 
-    TextView caltextView, transtextView, brifetextView;
-    SeekBar transseekBar;
-    Switch leftswitch, rootswitch;
+    TextView caltextView;
     //ImageView noteimageView;
     EditText noteeditText;
     String notedata;
@@ -100,7 +99,11 @@ public class RealService extends AccessibilityService  {
     ClipboardManager clipbrd;
     ClipData clipData;
 
-    private boolean moveableflag = false, moveflag = false, hideflag = false, leftflag = false, rootflag = false, dragflag = false, scrollheadflag = false;
+    public static float transsetting = 1;
+    public static boolean magflag = false, rootflag = false, wmflag = false, hideflag = false;
+
+
+    private boolean moveableflag = false, moveflag = false, dragflag = false, scrollheadflag = false;
     private boolean fstnumflag = true, screenlandscape = false, wehcatinstalled = false, alipayinstalled = false;
     private int sideflag = 0;
     public final static int NON_SDIE = 0;
@@ -108,7 +111,7 @@ public class RealService extends AccessibilityService  {
     public final static int RIGHT_SDIE = 2;
 
     public final static int WM_MENU = 0;
-    public final static int ST_MENU = 1;
+    //public final static int ST_MENU = 1;
     public final static int HD_MENU = 2;
     public final static int KM_MENU = 3;
     public final static int NT_MENU = 4;
@@ -131,12 +134,12 @@ public class RealService extends AccessibilityService  {
     private int orirawx = 0, orirawy = 0, gstrawx = 0, gstrawy = 0, listdrag = 0;
     //private int notex = 0, notey = 0;
     private int curPower = 0, gstdrag = 0;
-    private float transsetting = 1;
+
     private double fstnum = 0, sndnum = 0;
     private String savenumstr = "", getnumstr = "", butstr;
 
-    private static String[] menutext_r = {"颜文字", "便签", "计算器", "收付款", "设置"};
-    private static String[] menutext_nr = {"颜文字", "便签", "计算器", "设置"};
+    private static String[] menutext_r = {"颜文字", "便签", "计算器", "收付款"};
+    private static String[] menutext_nr = {"颜文字", "便签", "计算器"};
     private static String[] paymenutext = {"微信付款", "微信收款", "微信扫码", "支付宝付款", "支付宝收款", "支付宝扫码"};
 
     private static String[] calbuttontext = {
@@ -156,6 +159,7 @@ public class RealService extends AccessibilityService  {
     {
         //super.onCreate();
         Log.i("TAG", "config success!");
+        /**/
         AccessibilityServiceInfo accessibilityServiceInfo = new AccessibilityServiceInfo();
         accessibilityServiceInfo.packageNames = new String[]{getPackageName()};
         accessibilityServiceInfo.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;
@@ -169,6 +173,7 @@ public class RealService extends AccessibilityService  {
         mWindowManager = (WindowManager)this.getSystemService(getApplication().WINDOW_SERVICE);
         wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         wmParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        //wmParams.type = WindowManager.LayoutParams.TYPE_TOAST;
         //wmParams.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
         wmParams.gravity = Gravity.START | Gravity.TOP;
         wmParams.windowAnimations = android.R.style.Animation_Dialog;
@@ -179,12 +184,8 @@ public class RealService extends AccessibilityService  {
         wmParams.height = dip2px(getApplicationContext(), 270);
         mWindowManager.getDefaultDisplay().getMetrics(metric);
 
-        if (leftflag) {
-            wmParams.x = 0;
-        }
-        else {
-            wmParams.x = metric.widthPixels - wmParams.width;
-        }
+
+        wmParams.x = metric.widthPixels - wmParams.width;
 
         wmParams.y = metric.widthPixels / 2;
         orirawx = wmParams.x;
@@ -234,7 +235,9 @@ public class RealService extends AccessibilityService  {
             @Override
             public void onClick(View v) {
                 savepref();
-                stopSelf();
+                //stopSelf();
+                Intent intent=new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(intent);
             }
         });
 
@@ -345,24 +348,25 @@ public class RealService extends AccessibilityService  {
                     case 3: {
                         if (rootflag) {
                             setpayinterface();
-                        }
+                        }/*
                         else {
                             setsettinginterface();
-                        }
+                        }*/
                     }
                     break;
+                    /*
                     case 4: {
                         if (rootflag) {
                             setsettinginterface();
                         }
                     }
-                    break;
+                    break;*/
                     default: {
                     }
                 }
             }
         });
-
+/*
         //setting layout
         setttinglayout = (LinearLayout) inflater.inflate(R.layout.service_setting, setttinglayout, true);
         setbackBtn = (Button) setttinglayout.findViewById(R.id.setbackBtn);
@@ -437,7 +441,7 @@ public class RealService extends AccessibilityService  {
                 arrayAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.service_item, getmenulist(rootflag));
                 menulistView.setAdapter(arrayAdapter);
             }
-        });
+        });*/
 
         //note layout
         notelayout = (LinearLayout) inflater.inflate(R.layout.service_note, notelayout, true);
@@ -840,11 +844,15 @@ public class RealService extends AccessibilityService  {
 
     @Override
     public void onInterrupt() {
+        /*
         if(wmlayout != null) {
             mWindowManager.removeView(kaolayout);
         }
         super.onDestroy();
+        */
+        Toast.makeText(getApplicationContext(), "异常！", Toast.LENGTH_SHORT).show();
     }
+
 /*
     @Override
     public void onDestroy() {
@@ -888,10 +896,10 @@ public class RealService extends AccessibilityService  {
             case KM_MENU: {
                 touchBtn = kaomoveBtn;
             }
-            break;
+            break;/*
             case ST_MENU: {
                 touchBtn = setmoveBtn;
-            }
+            }*/
             case NT_MENU: {
                 touchBtn = notemoveBtn;
             }
@@ -1148,8 +1156,9 @@ public class RealService extends AccessibilityService  {
     private void readpref() {
         SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
         transsetting = preferences.getFloat("transsetting", 50);
-        leftflag = preferences.getBoolean("leftsetting", false);
         rootflag = preferences.getBoolean("rootsetting", false);
+        magflag = preferences.getBoolean("magsetting", false);
+        wmflag = preferences.getBoolean("wmsetting", false);
 
         kaodata = new ArrayList<>();
         int kaonum = preferences.getInt("kaonum", 87);
@@ -1169,8 +1178,9 @@ public class RealService extends AccessibilityService  {
         editor.putString("note", notedata);
         editor.putInt("kaonum", cnt);
         editor.putFloat("transsetting", transsetting);
-        editor.putBoolean("leftsetting", leftflag);
+        editor.putBoolean("magsetting", magflag);
         editor.putBoolean("rootsetting", rootflag);
+        editor.putBoolean("wmsetting", wmflag);
         editor.putBoolean("nonvirgin", true);
         editor.apply();
     }
@@ -1228,22 +1238,24 @@ public class RealService extends AccessibilityService  {
         mWindowManager.addView(prstlayout, wmParams);
         mWindowManager.updateViewLayout(prstlayout, wmParams);
         mWindowManager.removeView(hidelayout);
-        setmoveBtn.setText(btykao_expd[curPower]);
+        touchBtn.setText(btykao_expd[curPower]);
     }
 
     private void setnormalinterface() {
+        arrayAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.service_item, getmenulist(rootflag));
+        menulistView.setAdapter(arrayAdapter);
         setlocation(108, 276);
         updatelayout(wmlayout);
         menumoveBtn.setText(btykao_expd[curPower]);
     }
-
+/*
     private void setsettinginterface() {
         hideflag = false;
         setlocation(108, 276);
         updatelayout(setttinglayout);
         setmoveBtn.setText(btykao_expd[curPower]);
     }
-
+*/
     private void setnoteinterface() {
         hideflag = false;
         setlocation(200, 300);
@@ -1409,7 +1421,7 @@ public class RealService extends AccessibilityService  {
         return (int) (pxValue / scale + 0.5f);
     }
 */
-    private int sucmd(String cmd) {
+    public int sucmd(String cmd) {
         try {
             Process process = Runtime.getRuntime().exec("su");
             DataOutputStream dataOutputStream = new DataOutputStream(process.getOutputStream());
@@ -1424,14 +1436,6 @@ public class RealService extends AccessibilityService  {
         } catch (Exception localException) {
             localException.printStackTrace();
             return -1;
-        }
-    }
-
-    private boolean checkroot() {
-        try {
-            return (sucmd("chmod 777" + getPackageCodePath()) != -1);
-        } catch (Exception e) {
-            return false;
         }
     }
 
