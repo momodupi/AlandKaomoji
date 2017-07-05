@@ -22,7 +22,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 //import android.hardware.SensorManager;
 //import android.os.CountDownTimer;
-//import android.os.IBinder;
+import android.os.IBinder;
 //import android.os.Process;
 import android.os.Build;
 import android.provider.Settings;
@@ -75,7 +75,7 @@ public class RealService extends AccessibilityService  {
     static WindowManager mWindowManager;
     DisplayMetrics metric;
 
-    Button kaocloseBtn, kaomoveBtn, menumoveBtn, menubackBtn, notebackBtn, noteclearBtn, notemoveBtn, calbackBtn, calmoveBtn, paymoveBtn, paybackBtn, hidemoveBtn;
+    Button kaobackBtn, kaomoveBtn, menumoveBtn, menubackBtn, notebackBtn, noteclearBtn, notemoveBtn, calbackBtn, calmoveBtn, paymoveBtn, paybackBtn, hidemoveBtn;
     Button touchBtn = null;
 
     TextView caltextView;
@@ -89,7 +89,7 @@ public class RealService extends AccessibilityService  {
     GridView calgridView;
 
     //SensorManager sensorManager;
-    OrientationEventListener orientationEventListener;
+    //OrientationEventListener orientationEventListener;
 
     //private Bitmap notebmp, notebmpbak;
     //private Canvas notecanvas;
@@ -103,7 +103,7 @@ public class RealService extends AccessibilityService  {
     public static boolean magflag = false, rootflag = false, wmflag = false, hideflag = false;
 
 
-    private boolean moveableflag = false, moveflag = false, dragflag = false, scrollheadflag = false;
+    private boolean moveableflag = false, moveflag = false, dragflag = false, scrollheadflag = false, overbrdflag = false;
     private boolean fstnumflag = true, screenlandscape = false, wehcatinstalled = false, alipayinstalled = false;
     private int sideflag = 0;
     public final static int NON_SDIE = 0;
@@ -131,7 +131,7 @@ public class RealService extends AccessibilityService  {
 
     private int calsymbol = 0;
 
-    private int orirawx = 0, orirawy = 0, gstrawx = 0, gstrawy = 0, listdrag = 0;
+    private int orirawx = 0, orirawy = 0, gstrawx = 0, gstrawy = 0, listdrag = 0, overbrdx = 0, overbrdy = 0;
     //private int notex = 0, notey = 0;
     private int curPower = 0, gstdrag = 0;
 
@@ -164,7 +164,7 @@ public class RealService extends AccessibilityService  {
         accessibilityServiceInfo.packageNames = new String[]{getPackageName()};
         accessibilityServiceInfo.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;
         accessibilityServiceInfo.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
-        accessibilityServiceInfo.notificationTimeout = 1000;
+        accessibilityServiceInfo.notificationTimeout = 100;
         setServiceInfo(accessibilityServiceInfo);
 
         readpref();
@@ -218,7 +218,7 @@ public class RealService extends AccessibilityService  {
         kaolistView = (ListView) kaolayout.findViewById(R.id.kaolistView);
         kaoarrayAdapter = new ArrayAdapter<>(this, R.layout.service_item, kaodata);
         kaolistView.setAdapter(kaoarrayAdapter);
-        kaocloseBtn = (Button) kaolayout.findViewById(R.id.kaocloseBtn);
+        kaobackBtn = (Button) kaolayout.findViewById(R.id.kaobackBtn);
         kaomoveBtn = (Button) kaolayout.findViewById(R.id.kaomoveBtn);
         kaomoveBtn.setText(butstr);
 
@@ -231,13 +231,12 @@ public class RealService extends AccessibilityService  {
             }
         });
 
-        kaocloseBtn.setOnClickListener(new View.OnClickListener() {
+        kaobackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 savepref();
                 //stopSelf();
-                Intent intent=new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                startActivity(intent);
+                setnormalinterface();
             }
         });
 
@@ -348,100 +347,14 @@ public class RealService extends AccessibilityService  {
                     case 3: {
                         if (rootflag) {
                             setpayinterface();
-                        }/*
-                        else {
-                            setsettinginterface();
-                        }*/
-                    }
-                    break;
-                    /*
-                    case 4: {
-                        if (rootflag) {
-                            setsettinginterface();
                         }
                     }
-                    break;*/
+                    break;
                     default: {
                     }
                 }
             }
         });
-/*
-        //setting layout
-        setttinglayout = (LinearLayout) inflater.inflate(R.layout.service_setting, setttinglayout, true);
-        setbackBtn = (Button) setttinglayout.findViewById(R.id.setbackBtn);
-        setmoveBtn = (Button) setttinglayout.findViewById(R.id.setmoveBtn);
-        setmoveBtn.setText(butstr);
-
-        transtextView = (TextView) setttinglayout.findViewById(R.id.transtextView);
-        transseekBar = (SeekBar) setttinglayout.findViewById(R.id.transseekBar);
-        transseekBar.setMax(100);
-        transseekBar.setProgress(50);
-
-        leftswitch = (Switch) setttinglayout.findViewById(R.id.leftswitch);
-        rootswitch = (Switch) setttinglayout.findViewById(R.id.rootswitch);
-        brifetextView = (TextView) setttinglayout.findViewById(R.id.brifetextView);
-
-        transseekBar.setProgress((int) transsetting);
-        leftswitch.setChecked(leftflag);
-        rootswitch.setChecked(rootflag);
-
-        setmoveBtn.setOnTouchListener(new View.OnTouchListener()
-        {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                wmguesture(event, ST_MENU);
-                return false;
-            }
-        });
-
-        setbackBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setnormalinterface();
-            }
-        });
-
-        transseekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                transsetting = (float) progress;
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-        leftswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                leftflag = isChecked;
-            }
-        });
-
-        rootswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked && checkroot()) {
-                    Toast.makeText(getApplicationContext(), "获☆取☆root☆大☆成☆功☆", Toast.LENGTH_SHORT).show();
-                    rootflag = true;
-                }
-                else {
-                    Toast.makeText(getApplicationContext(), "获☆取☆root☆大☆失☆败☆", Toast.LENGTH_SHORT).show();
-                    rootswitch.setChecked(false);
-                    rootflag = false;
-                }
-                arrayAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.service_item, getmenulist(rootflag));
-                menulistView.setAdapter(arrayAdapter);
-            }
-        });*/
 
         //note layout
         notelayout = (LinearLayout) inflater.inflate(R.layout.service_note, notelayout, true);
@@ -1023,9 +936,7 @@ public class RealService extends AccessibilityService  {
                         }
                     }
                 }
-
                gstdrag = 0;
-
                if (!moveflag) {
                    if (itfc == HD_MENU) {
                        setoriinterface();
@@ -1034,7 +945,10 @@ public class RealService extends AccessibilityService  {
                        sethideinterface();
                    }
                }
-                moveflag = false;
+               else {
+                   overbrdflag = false;
+               }
+               moveflag = false;
             }
             break;
             default: {
@@ -1073,16 +987,31 @@ public class RealService extends AccessibilityService  {
 */
 
     private void getsideflag() {
-        if (wmParams.x >= (metric.widthPixels - wmParams.width)) {
-            wmParams.x = metric.widthPixels - wmParams.width;
-            sideflag = RIGHT_SDIE;
-        }
-        else if (wmParams.x <= 0) {
-            wmParams.x  = 0;
-            sideflag = LEFT_SDIE;
+        if (magflag) {
+            if (wmParams.x >= (metric.widthPixels - wmParams.width - dip2px(getApplicationContext(), 20))) {
+                wmParams.x = metric.widthPixels - wmParams.width;
+                sideflag = RIGHT_SDIE;
+            }
+            else if (wmParams.x <= dip2px(getApplicationContext(), 20)) {
+                wmParams.x  = 0;
+                sideflag = LEFT_SDIE;
+            }
+            else {
+                sideflag = NON_SDIE;
+            }
         }
         else {
-            sideflag = NON_SDIE;
+            if (wmParams.x >= (metric.widthPixels - wmParams.width)) {
+                wmParams.x = metric.widthPixels - wmParams.width;
+                sideflag = RIGHT_SDIE;
+            }
+            else if (wmParams.x <= 0) {
+                wmParams.x  = 0;
+                sideflag = LEFT_SDIE;
+            }
+            else {
+                sideflag = NON_SDIE;
+            }
         }
     }
 
@@ -1090,39 +1019,7 @@ public class RealService extends AccessibilityService  {
         getsideflag();
         wmParams.width = dip2px(getApplicationContext(), w);
         wmParams.height = dip2px(getApplicationContext(), h);
-/*
-        if (hideflag) {
-            if (leftflag) {
-                wmParams.x = 0;
-            }
-            else {
-                wmParams.x = metric.widthPixels - wmParams.width;
-            }
-        }
-        else {
-            if (sideflag == LEFT_SDIE) {
-                wmParams.x  = 0;
-            }
-            else if (sideflag == RIGHT_SDIE) {
-                wmParams.x = metric.widthPixels - wmParams.width;
-            }
-            else {
-                if (wmParams.x > (metric.widthPixels - wmParams.width)) {
-                    wmParams.x = metric.widthPixels - wmParams.width;
-                }
-                else if (wmParams.x < 0) {
-                    wmParams.x  = 0;
-                }
 
-                if (wmParams.y > (metric.heightPixels - wmParams.height)) {
-                    wmParams.y = metric.heightPixels - wmParams.height;
-                }
-                else if (wmParams.y < 0) {
-                    wmParams.y  = 0;
-                }
-            }
-        }
-        */
         if (sideflag == LEFT_SDIE) {
             wmParams.x  = 0;
         }
@@ -1199,7 +1096,11 @@ public class RealService extends AccessibilityService  {
     private void sethideinterface() {
         hidelayout.setAlpha(transsetting / 100);
         hideflag = true;
-        //setlocation(60, 36);
+        /**/
+        if (overbrdflag) {
+            wmParams.x = overbrdx;
+            wmParams.y = overbrdy;
+        }
         setlocation(48, 48);
         mWindowManager.addView(hidelayout, wmParams);
         mWindowManager.updateViewLayout(hidelayout, wmParams);
@@ -1221,6 +1122,9 @@ public class RealService extends AccessibilityService  {
         }
         else {
             if (wmParams.x > (metric.widthPixels - wmParams.width)) {
+                overbrdflag = true;
+                overbrdx = wmParams.x;
+                overbrdy = wmParams.y;
                 wmParams.x = metric.widthPixels - wmParams.width;
             }
             else if (wmParams.x < 0) {
@@ -1228,11 +1132,16 @@ public class RealService extends AccessibilityService  {
             }
 
             if (wmParams.y > (metric.heightPixels - wmParams.height)) {
+                overbrdflag = true;
+                overbrdx = wmParams.x;
+                overbrdy = wmParams.y;
                 wmParams.y = metric.heightPixels - wmParams.height;
             }
             else if (wmParams.y < 0) {
                 wmParams.y  = 0;
             }
+
+            Log.e("pos", "x"+overbrdx+"///y"+overbrdy+"///flag"+overbrdflag);
         }
 
         mWindowManager.addView(prstlayout, wmParams);
@@ -1438,7 +1347,6 @@ public class RealService extends AccessibilityService  {
             return -1;
         }
     }
-
 
     private List<String> getmenulist(boolean rf) {
         List<String> mdata = new ArrayList<>();

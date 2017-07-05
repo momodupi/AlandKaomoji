@@ -24,11 +24,11 @@
             android:textColor="#eeeeee" />
 
         <Button
-            android:id="@+id/kaocloseBtn"
+            android:id="@+id/kaobackBtn"
             android:layout_width="36dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@mipmap/close"
+            android:background="@mipmap/swip"
             android:textColor="#eeeeee" />
 
     </LinearLayout>
