@@ -16,7 +16,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:orientation="horizontal"
-        android:id="@+id/set1linearLayout">
+        android:id="@+id/wmstclinearLayout">
 
         <Switch
             android:id="@+id/wmswitch"
@@ -35,9 +35,30 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:orientation="horizontal"
-        android:layout_below="@+id/set1linearLayout"
+        android:layout_below="@+id/wmstclinearLayout"
         android:layout_alignParentStart="true"
-        android:id="@+id/set2linearLayout">
+        android:id="@+id/nvswhlinearLayout">
+
+        <Switch
+            android:id="@+id/navswitch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center_vertical"
+            android:layout_margin="20dp"
+            android:text="@string/navsetting"
+            android:textSize="18sp"
+            android:textColor="#eeeeee" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:layout_below="@+id/nvswhlinearLayout"
+        android:layout_alignParentStart="true"
+        android:id="@+id/rtswhlinearLayout">
 
         <Switch
             android:id="@+id/rootswitch"
@@ -56,9 +77,9 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:orientation="horizontal"
-        android:layout_below="@+id/set2linearLayout"
+        android:layout_below="@+id/rtswhlinearLayout"
         android:layout_alignParentStart="true"
-        android:id="@+id/set3linearLayout">
+        android:id="@+id/mgswhlinearLayout">
 
         <Switch
             android:id="@+id/magswitch"
@@ -77,9 +98,9 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:orientation="horizontal"
-        android:layout_below="@+id/set3linearLayout"
+        android:layout_below="@+id/mgswhlinearLayout"
         android:layout_alignParentStart="true"
-        android:id="@+id/set4linearLayout">
+        android:id="@+id/trswhlinearLayout">
 
         <TextView
             android:id="@+id/transtextView"

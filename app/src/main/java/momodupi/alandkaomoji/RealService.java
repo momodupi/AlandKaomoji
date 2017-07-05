@@ -916,7 +916,8 @@ public class RealService extends AccessibilityService  {
                     //Log.e("Gesture", "" + gstdrag);
                      switch (gstdrag) {
                         case DRG_LEFT: {
-                            this.performGlobalAction(GLOBAL_ACTION_BACK);
+                            //this.performGlobalAction(GLOBAL_ACTION_BACK);
+                            this.performGlobalAction(GLOBAL_ACTION_HOME);
                         }
                         break;
                         case DRG_RIGHT: {
@@ -928,7 +929,8 @@ public class RealService extends AccessibilityService  {
                         }
                         break;
                         case DRG_UP: {
-                            this.performGlobalAction(GLOBAL_ACTION_HOME);
+                            //this.performGlobalAction(GLOBAL_ACTION_HOME);
+                            setoriinterface();
                         }
                         break;
                         default: {
@@ -939,7 +941,8 @@ public class RealService extends AccessibilityService  {
                gstdrag = 0;
                if (!moveflag) {
                    if (itfc == HD_MENU) {
-                       setoriinterface();
+                       //setoriinterface();
+                       this.performGlobalAction(GLOBAL_ACTION_BACK);
                    }
                    else {
                        sethideinterface();

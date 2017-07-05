@@ -29,6 +29,8 @@
 
     <string name="wmsetting">悬浮窗</string>
 
+    <string name="navsetting">导航栏</string>
+
     <string name="transsetting">透明度</string>
 
     <string name="magsetting">磁吸模式</string>

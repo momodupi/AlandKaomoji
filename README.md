@@ -46,3 +46,4 @@ Due to the API level and minimizing the size of apk, Alandkaomoji only supports 
 1. Redisign setting menu to acitivity</br>
 ### 2017.7.5
 1. Fix bug of move</br>
+2. Add navibar control</br>

@@ -32,7 +32,8 @@ import java.util.List;
 public class BlankActivity extends Activity {
 
     SeekBar transseekBar;
-    Switch wmswitch, rootswitch, magswitch;
+    Switch wmswitch, rootswitch, magswitch, navswitch;
+    private boolean navflag = true;
 
     //private boolean magflag = false, rootflag = false;
     //private float transsetting = 1;
@@ -65,6 +66,7 @@ public class BlankActivity extends Activity {
             editor.putBoolean("magsetting", false);
             editor.putBoolean("rootsetting", false);
             editor.putBoolean("wmsetting", false);
+            editor.putBoolean("navsetting", true);
             editor.putBoolean("nonvirgin", true);
             editor.apply();
             //Toast.makeText(getApplicationContext(), getResources().getString(R.string.nonvgn), Toast.LENGTH_SHORT).show();
@@ -73,6 +75,7 @@ public class BlankActivity extends Activity {
         RealService.rootflag = preferences.getBoolean("rootsetting", false);
         RealService.magflag = preferences.getBoolean("magsetting", false);
         RealService.transsetting = preferences.getFloat("transsetting", 50);
+        navflag = preferences.getBoolean("navsetting", false);
         RealService.wmflag = preferences.getBoolean("wmsetting", false) && isAccessibilitySettingsOn(this);
 
         transseekBar = (SeekBar) findViewById(R.id.transseekBar);
@@ -82,11 +85,13 @@ public class BlankActivity extends Activity {
         wmswitch = (Switch) findViewById(R.id.wmswitch);
         rootswitch = (Switch) findViewById(R.id.rootswitch);
         magswitch = (Switch) findViewById(R.id.magswitch);
+        navswitch = (Switch) findViewById(R.id.navswitch);
 
         transseekBar.setProgress((int) RealService.transsetting);
         magswitch.setChecked(RealService.magflag);
         rootswitch.setChecked(RealService.rootflag);
         wmswitch.setChecked(RealService.wmflag);
+        navswitch.setChecked(navflag);
 
         wmswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -167,6 +172,18 @@ public class BlankActivity extends Activity {
                 editor.putBoolean("magsetting", isChecked);
                 editor.apply();
                 RealService.magflag = isChecked;
+            }
+        });
+
+        navswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    sucmd("settings put global policy_control null");
+                }
+                else {
+                    sucmd("settings put global policy_control immersive.navigation=*\n");
+                }
             }
         });
 
@@ -287,24 +304,23 @@ public class BlankActivity extends Activity {
         dialog.show();/**/
     }
 
-
-    public boolean checkroot() {
-
+    public int sucmd(String cmd) {
         try {
             Process process = Runtime.getRuntime().exec("su");
             DataOutputStream dataOutputStream = new DataOutputStream(process.getOutputStream());
-            //dataOutputStream.writeBytes("export LD_LIBRARY_PATH=/vendor/lib:/system/lib\n");
-            //cmd = String.valueOf(cmd);
-            dataOutputStream.writeBytes("chmod 777" + getPackageCodePath() + "\n");
-            //dataOutputStream.flush();
+            dataOutputStream.writeBytes(cmd + "\n");
             dataOutputStream.writeBytes("exit\n");
             dataOutputStream.flush();
             process.waitFor();
-            return (process.exitValue() != -1);
+            return process.exitValue();
         } catch (Exception localException) {
             localException.printStackTrace();
-            return false;
+            return -1;
         }
+    }
+
+    public boolean checkroot() {
+        return (sucmd("chmod 777" + getPackageCodePath() + "\n") != -1);
     }
 
 }
