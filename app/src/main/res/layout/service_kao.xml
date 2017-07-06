@@ -16,19 +16,11 @@
 
         <Button
             android:id="@+id/kaomoveBtn"
-            android:layout_width="72dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#505050"
             android:text=""
-            android:textColor="#eeeeee" />
-
-        <Button
-            android:id="@+id/kaobackBtn"
-            android:layout_width="36dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@mipmap/swip"
             android:textColor="#eeeeee" />
 
     </LinearLayout>

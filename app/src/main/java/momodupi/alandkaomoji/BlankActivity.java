@@ -17,14 +17,21 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+import android.widget.ExpandableListView;
+import android.widget.ListView;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
 
 import java.io.DataOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -33,6 +40,7 @@ public class BlankActivity extends Activity {
 
     SeekBar transseekBar;
     Switch wmswitch, rootswitch, magswitch, navswitch;
+    Spinner gstspineer, gstfunspinner;
     private boolean navflag = true;
 
     //private boolean magflag = false, rootflag = false;
@@ -67,8 +75,14 @@ public class BlankActivity extends Activity {
             editor.putBoolean("rootsetting", false);
             editor.putBoolean("wmsetting", false);
             editor.putBoolean("navsetting", true);
+            editor.putInt("gstclick", RealService.dragdirc[RealService.DRG_CLICK]);
+            editor.putInt("gstleft", RealService.dragdirc[RealService.DRG_LEFT]);
+            editor.putInt("gstright", RealService.dragdirc[RealService.DRG_RIGHT]);
+            editor.putInt("gstup", RealService.dragdirc[RealService.DRG_UP]);
+            editor.putInt("gstdown", RealService.dragdirc[RealService.DRG_DOWN]);
             editor.putBoolean("nonvirgin", true);
             editor.apply();
+
             //Toast.makeText(getApplicationContext(), getResources().getString(R.string.nonvgn), Toast.LENGTH_SHORT).show();
         }
 
@@ -76,21 +90,28 @@ public class BlankActivity extends Activity {
         RealService.magflag = preferences.getBoolean("magsetting", false);
         RealService.transsetting = preferences.getFloat("transsetting", 50);
         navflag = preferences.getBoolean("navsetting", false);
+        RealService.dragdirc[RealService.DRG_CLICK] = preferences.getInt("gstclick", 0);
+        RealService.dragdirc[RealService.DRG_LEFT] = preferences.getInt("gstleft", 0);
+        RealService.dragdirc[RealService.DRG_RIGHT] = preferences.getInt("gstright", 0);
+        RealService.dragdirc[RealService.DRG_UP] = preferences.getInt("gstup", 0);
+        RealService.dragdirc[RealService.DRG_DOWN] = preferences.getInt("gstdown", 0);
         RealService.wmflag = preferences.getBoolean("wmsetting", false) && isAccessibilitySettingsOn(this);
-
-        transseekBar = (SeekBar) findViewById(R.id.transseekBar);
-        transseekBar.setMax(100);
-        transseekBar.setProgress(50);
 
         wmswitch = (Switch) findViewById(R.id.wmswitch);
         rootswitch = (Switch) findViewById(R.id.rootswitch);
         magswitch = (Switch) findViewById(R.id.magswitch);
         navswitch = (Switch) findViewById(R.id.navswitch);
+        transseekBar = (SeekBar) findViewById(R.id.transseekBar);
+        gstspineer = (Spinner) findViewById(R.id.gstspinner);
+        gstfunspinner =(Spinner) findViewById(R.id.gstfuncspinner);
+
+        transseekBar.setMax(100);
+        transseekBar.setProgress(50);
 
         transseekBar.setProgress((int) RealService.transsetting);
         magswitch.setChecked(RealService.magflag);
         rootswitch.setChecked(RealService.rootflag);
-        wmswitch.setChecked(RealService.wmflag);
+        wmswitch.setChecked(RealService.wmflag && isAccessibilitySettingsOn(getApplicationContext()));
         navswitch.setChecked(navflag);
 
         wmswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -141,9 +162,6 @@ public class BlankActivity extends Activity {
         transseekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                //SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
-                //editor.putFloat("transsetting", progress);
-                //editor.apply();
                 RealService.transsetting = progress;
                 if (isAccessibilitySettingsOn(getApplicationContext())) {
 
@@ -203,6 +221,37 @@ public class BlankActivity extends Activity {
             }
         });
 
+
+        gstspineer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                gstfunspinner.setSelection(RealService.dragdirc[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        gstfunspinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                RealService.dragdirc[gstspineer.getSelectedItemPosition()] = position;
+                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
+                editor.putInt("gstclick", RealService.dragdirc[RealService.DRG_CLICK]);
+                editor.putInt("gstleft", RealService.dragdirc[RealService.DRG_LEFT]);
+                editor.putInt("gstright", RealService.dragdirc[RealService.DRG_RIGHT]);
+                editor.putInt("gstup", RealService.dragdirc[RealService.DRG_UP]);
+                editor.putInt("gstdown", RealService.dragdirc[RealService.DRG_DOWN]);
+                editor.apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     @Override
@@ -214,6 +263,11 @@ public class BlankActivity extends Activity {
         editor.putBoolean("magsetting", RealService.magflag);
         editor.putBoolean("rootsetting", RealService.rootflag);
         editor.putBoolean("wmsetting", RealService.wmflag);
+        editor.putInt("gstclick", RealService.dragdirc[RealService.DRG_CLICK]);
+        editor.putInt("gstleft", RealService.dragdirc[RealService.DRG_LEFT]);
+        editor.putInt("gstright", RealService.dragdirc[RealService.DRG_RIGHT]);
+        editor.putInt("gstup", RealService.dragdirc[RealService.DRG_UP]);
+        editor.putInt("gstdown", RealService.dragdirc[RealService.DRG_DOWN]);
         editor.putBoolean("nonvirgin", true);
         editor.apply();
         super.onDestroy();
