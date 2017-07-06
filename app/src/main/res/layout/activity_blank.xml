@@ -12,7 +12,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="48dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:orientation="horizontal"
@@ -33,7 +33,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="48dp"
         android:orientation="horizontal"
         android:layout_below="@+id/wmstclinearLayout"
         android:layout_alignParentStart="true"
@@ -54,7 +54,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="48dp"
         android:orientation="horizontal"
         android:layout_below="@+id/nvswhlinearLayout"
         android:layout_alignParentStart="true"
@@ -75,7 +75,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="48dp"
         android:orientation="horizontal"
         android:layout_below="@+id/rtswhlinearLayout"
         android:layout_alignParentStart="true"
@@ -96,7 +96,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="48dp"
         android:orientation="horizontal"
         android:layout_below="@+id/mgswhlinearLayout"
         android:layout_alignParentStart="true"
@@ -124,6 +124,67 @@
             android:layout_weight="1" />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:orientation="horizontal"
+        android:layout_below="@+id/trswhlinearLayout"
+        android:layout_alignParentStart="true"
+        android:id="@+id/gstsetlinearLayout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/gsttextView"
+                android:layout_width="80dp"
+                android:layout_height="48dp"
+                android:layout_gravity="start"
+                android:gravity="center_vertical"
+                android:layout_marginStart="20dp"
+                android:layout_weight="1"
+                android:text="@string/gstsetting"
+                android:textSize="18sp"
+                android:textColor="#eeeeee" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <Spinner
+                    android:id="@+id/gstspinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="21dp"
+                    android:layout_weight="1"
+                    android:entries="@array/gstlist"
+                    android:gravity="center_vertical"
+                    android:textColor="#eeeeee"
+                    android:textSize="12sp" />
+
+                <Spinner
+                    android:id="@+id/gstfuncspinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:layout_weight="1"
+                    android:entries="@array/gstfunclist"
+                    android:gravity="center_vertical"
+                    android:textColor="#eeeeee"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
     <TextView
         android:text="@string/brife"
         android:layout_width="match_parent"
@@ -134,5 +195,6 @@
         android:textSize="12sp"
         android:textColor="#eeeeee"
         android:gravity="bottom" />
+
 
 </RelativeLayout>

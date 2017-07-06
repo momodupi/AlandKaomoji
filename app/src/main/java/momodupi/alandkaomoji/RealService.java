@@ -75,7 +75,7 @@ public class RealService extends AccessibilityService  {
     static WindowManager mWindowManager;
     DisplayMetrics metric;
 
-    Button kaobackBtn, kaomoveBtn, menumoveBtn, menubackBtn, notebackBtn, noteclearBtn, notemoveBtn, calbackBtn, calmoveBtn, paymoveBtn, paybackBtn, hidemoveBtn;
+    Button kaomoveBtn, menumoveBtn, notebackBtn, noteclearBtn, notemoveBtn, calbackBtn, calmoveBtn, paymoveBtn, paybackBtn, hidemoveBtn;
     Button touchBtn = null;
 
     TextView caltextView;
@@ -100,8 +100,7 @@ public class RealService extends AccessibilityService  {
     ClipData clipData;
 
     public static float transsetting = 1;
-    public static boolean magflag = false, rootflag = false, wmflag = false, hideflag = false;
-
+    public static boolean magflag = false, rootflag = false, wmflag = true, hideflag = false;
 
     private boolean moveableflag = false, moveflag = false, dragflag = false, scrollheadflag = false, overbrdflag = false;
     private boolean fstnumflag = true, screenlandscape = false, wehcatinstalled = false, alipayinstalled = false;
@@ -124,10 +123,12 @@ public class RealService extends AccessibilityService  {
     public final static int DEV_CL = 4;
     public final static int POW_CL = 5;
 
+    public final static int DRG_CLICK = 0;
     public final static int DRG_LEFT = 1;
     public final static int DRG_RIGHT = 2;
     public final static int DRG_UP = 3;
     public final static int DRG_DOWN = 4;
+    public static int[] dragdirc = {GLOBAL_ACTION_BACK, GLOBAL_ACTION_HOME, GLOBAL_ACTION_NOTIFICATIONS, GLOBAL_ACTION_RECENTS, GLOBAL_ACTION_QUICK_SETTINGS};
 
     private int calsymbol = 0;
 
@@ -138,8 +139,8 @@ public class RealService extends AccessibilityService  {
     private double fstnum = 0, sndnum = 0;
     private String savenumstr = "", getnumstr = "", butstr;
 
-    private static String[] menutext_r = {"颜文字", "便签", "计算器", "收付款"};
-    private static String[] menutext_nr = {"颜文字", "便签", "计算器"};
+    private static String[] menutext_r = {"颜文字", "便签", "计算器", "收付款", "设置"};
+    private static String[] menutext_nr = {"颜文字", "便签", "计算器", "设置"};
     private static String[] paymenutext = {"微信付款", "微信收款", "微信扫码", "支付宝付款", "支付宝收款", "支付宝扫码"};
 
     private static String[] calbuttontext = {
@@ -218,7 +219,7 @@ public class RealService extends AccessibilityService  {
         kaolistView = (ListView) kaolayout.findViewById(R.id.kaolistView);
         kaoarrayAdapter = new ArrayAdapter<>(this, R.layout.service_item, kaodata);
         kaolistView.setAdapter(kaoarrayAdapter);
-        kaobackBtn = (Button) kaolayout.findViewById(R.id.kaobackBtn);
+        //kaobackBtn = (Button) kaolayout.findViewById(R.id.kaobackBtn);
         kaomoveBtn = (Button) kaolayout.findViewById(R.id.kaomoveBtn);
         kaomoveBtn.setText(butstr);
 
@@ -230,7 +231,7 @@ public class RealService extends AccessibilityService  {
                 return false;
             }
         });
-
+/*
         kaobackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -238,7 +239,7 @@ public class RealService extends AccessibilityService  {
                 //stopSelf();
                 setnormalinterface();
             }
-        });
+        });*/
 
         kaolistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -306,7 +307,7 @@ public class RealService extends AccessibilityService  {
         wmlayout = (LinearLayout) inflater.inflate(R.layout.service_wm, wmlayout, true);
         menulistView = (ListView) wmlayout.findViewById(R.id.menulistView);
         menumoveBtn = (Button) wmlayout.findViewById(R.id.menumoveBtn);
-        menubackBtn = (Button) wmlayout.findViewById(R.id.menubackBtn);
+        //menubackBtn = (Button) wmlayout.findViewById(R.id.menubackBtn);
 
         arrayAdapter = new ArrayAdapter<>(this, R.layout.service_item, getmenulist(rootflag));
         menulistView.setAdapter(arrayAdapter);
@@ -320,14 +321,14 @@ public class RealService extends AccessibilityService  {
                 return false;
             }
         });
-
+/*
         menubackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 setkaomojiinterface();
             }
         });
-
+*/
         menulistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -347,6 +348,17 @@ public class RealService extends AccessibilityService  {
                     case 3: {
                         if (rootflag) {
                             setpayinterface();
+                        }
+                        else {
+                            Intent intent = new Intent(RealService.this, BlankActivity.class);
+                            startActivity(intent);
+                        }
+                    }
+                    break;
+                    case 4: {
+                        if (rootflag) {
+                            Intent intent = new Intent(RealService.this, BlankActivity.class);
+                            startService(intent);
                         }
                     }
                     break;
@@ -889,7 +901,7 @@ public class RealService extends AccessibilityService  {
                 orirawy = (int) event.getRawY();
             }
             break;
-           case MotionEvent.ACTION_UP: {
+            case MotionEvent.ACTION_UP: {
                 touchBtn.setText(butstr);
 
                 if ((itfc == HD_MENU) && (!moveableflag) && (moveflag)) {
@@ -913,45 +925,27 @@ public class RealService extends AccessibilityService  {
                             gstdrag = DRG_UP;
                         }
                     }
-                    //Log.e("Gesture", "" + gstdrag);
-                     switch (gstdrag) {
-                        case DRG_LEFT: {
-                            //this.performGlobalAction(GLOBAL_ACTION_BACK);
-                            this.performGlobalAction(GLOBAL_ACTION_HOME);
-                        }
-                        break;
-                        case DRG_RIGHT: {
-                            this.performGlobalAction(GLOBAL_ACTION_RECENTS);
-                        }
-                        break;
-                        case DRG_DOWN: {
-                            this.performGlobalAction(GLOBAL_ACTION_HOME);
-                        }
-                        break;
-                        case DRG_UP: {
-                            //this.performGlobalAction(GLOBAL_ACTION_HOME);
-                            setoriinterface();
-                        }
-                        break;
-                        default: {
-
-                        }
+                    if (dragdirc[gstdrag] == 0) {
+                        setoriinterface();
+                    }
+                   else {
+                        this.performGlobalAction(dragdirc[gstdrag]);
+                   }
+                }
+                else if (!moveflag && (itfc == HD_MENU)) {
+                    if (dragdirc[0] == 0) {
+                        setoriinterface();
+                    }
+                    else {
+                        this.performGlobalAction(dragdirc[gstdrag]);
                     }
                 }
-               gstdrag = 0;
-               if (!moveflag) {
-                   if (itfc == HD_MENU) {
-                       //setoriinterface();
-                       this.performGlobalAction(GLOBAL_ACTION_BACK);
-                   }
-                   else {
-                       sethideinterface();
-                   }
-               }
-               else {
-                   overbrdflag = false;
-               }
-               moveflag = false;
+                else if (!moveflag) {
+                    overbrdflag = false;
+                    sethideinterface();
+                }
+                moveflag = false;
+                gstdrag = 0;
             }
             break;
             default: {
@@ -990,17 +984,14 @@ public class RealService extends AccessibilityService  {
 */
 
     private void getsideflag() {
-        if (magflag) {
-            if (wmParams.x >= (metric.widthPixels - wmParams.width - dip2px(getApplicationContext(), 20))) {
+        if (magflag && hideflag) {
+            if (wmParams.x >= (metric.widthPixels / 2.5)) {
                 wmParams.x = metric.widthPixels - wmParams.width;
                 sideflag = RIGHT_SDIE;
             }
-            else if (wmParams.x <= dip2px(getApplicationContext(), 20)) {
+            else {
                 wmParams.x  = 0;
                 sideflag = LEFT_SDIE;
-            }
-            else {
-                sideflag = NON_SDIE;
             }
         }
         else {
@@ -1060,6 +1051,12 @@ public class RealService extends AccessibilityService  {
         magflag = preferences.getBoolean("magsetting", false);
         wmflag = preferences.getBoolean("wmsetting", false);
 
+        dragdirc[DRG_CLICK] = preferences.getInt("gstclick", 0);
+        dragdirc[DRG_LEFT] = preferences.getInt("gstleft", 0);
+        dragdirc[DRG_RIGHT] = preferences.getInt("gstright", 0);
+        dragdirc[DRG_UP] = preferences.getInt("gstup", 0);
+        dragdirc[DRG_DOWN] = preferences.getInt("gstdown", 0);
+
         kaodata = new ArrayList<>();
         int kaonum = preferences.getInt("kaonum", 87);
         for (int cnt = 0; cnt < kaonum; cnt++) {
@@ -1082,6 +1079,11 @@ public class RealService extends AccessibilityService  {
         editor.putBoolean("rootsetting", rootflag);
         editor.putBoolean("wmsetting", wmflag);
         editor.putBoolean("nonvirgin", true);
+        editor.putInt("gstclick", dragdirc[DRG_CLICK]);
+        editor.putInt("gstleft", dragdirc[DRG_LEFT]);
+        editor.putInt("gstright", dragdirc[DRG_RIGHT]);
+        editor.putInt("gstup", dragdirc[DRG_UP]);
+        editor.putInt("gstdown", dragdirc[DRG_DOWN]);
         editor.apply();
     }
 /*

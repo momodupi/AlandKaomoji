@@ -47,3 +47,5 @@ Due to the API level and minimizing the size of apk, Alandkaomoji only supports 
 ### 2017.7.5
 1. Fix bug of move</br>
 2. Add navibar control</br>
+### 2017.7.6
+1. Add guesture setting</br>

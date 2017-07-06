@@ -37,6 +37,26 @@
 
     <string name="rootsetting">root模式</string>
 
+    <string name="gstsetting">手势设置</string>
+
+    <string-array name="gstlist">
+        <item>点击</item>
+        <item>左滑</item>
+        <item>右滑</item>
+        <item>上滑</item>
+        <item>下滑</item>
+    </string-array>
+
+    <string-array name="gstfunclist">
+        <item>A岛颜文字</item>
+        <item>返回上一级菜单</item>
+        <item>返回主页</item>
+        <item>显示最近应用</item>
+        <item>下拉通知栏</item>
+        <item>快捷设置</item>
+        <item>电源菜单</item>
+    </string-array>
+
     <string name="noapp">无应用支持</string>
 
     <string name="error">error</string>
@@ -93,7 +113,7 @@
         <item>( ´д`)</item>
         <item>( -д-)</item>
         <item>(>д&lt;)</item>
-        <item>･ﾟ( ﾉд`ﾟ)</item>
+        <item>ﾟ( ﾉд`ﾟ)</item>
         <item>( TдT)</item>
         <item>(￣∇￣)</item>
         <item>(￣3￣)</item>
