@@ -2,9 +2,6 @@ package momodupi.alandkaomoji;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
-//import android.app.Instrumentation;
-//import android.app.Service;
-//import android.app.UiAutomation;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -12,51 +9,34 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-//import android.graphics.Bitmap;
-//import android.graphics.Canvas;
-//import android.graphics.Color;
-//import android.graphics.Paint;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-//import android.hardware.SensorManager;
-//import android.os.CountDownTimer;
-import android.os.IBinder;
-//import android.os.Process;
-import android.os.Build;
-import android.provider.Settings;
+import android.media.MediaRecorder;
+import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
-//import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
-//import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.GridView;
-//import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
 import java.io.DataOutputStream;
-//import java.io.File;
-//import java.io.OutputStream;
-//import java.io.IOException;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,16 +49,17 @@ import java.util.List;
 
 public class RealService extends AccessibilityService  {
 
-    LinearLayout wmlayout, notelayout, kaolayout, callayout, paylayout;
+    LinearLayout wmlayout, notelayout, kaolayout, callayout, paylayout, reclayout;
     static LinearLayout prstlayout, hidelayout;
     static WindowManager.LayoutParams wmParams;
     static WindowManager mWindowManager;
     DisplayMetrics metric;
 
-    Button kaomoveBtn, menumoveBtn, notebackBtn, noteclearBtn, notemoveBtn, calbackBtn, calmoveBtn, paymoveBtn, paybackBtn, hidemoveBtn;
+    Button kaomoveBtn, menumoveBtn, notebackBtn, noteclearBtn, notemoveBtn, calbackBtn, calmoveBtn;
+    Button paymoveBtn, paybackBtn, recmoveBtn, recbackBtn, recpsBtn, hidemoveBtn;
     Button touchBtn = null;
 
-    TextView caltextView;
+    TextView caltextView, recnametextView, rectimetextView;
     //ImageView noteimageView;
     EditText noteeditText;
     String notedata;
@@ -98,12 +79,15 @@ public class RealService extends AccessibilityService  {
 
     ClipboardManager clipbrd;
     ClipData clipData;
+    File recfile;
+
+    private MediaRecorder mediaRecorder;
 
     public static float transsetting = 1;
-    public static boolean magflag = false, rootflag = false, wmflag = true, hideflag = false;
+    public static boolean magflag = false, rootflag = false, wmflag = true, hideflag = false, recflag = false;
 
     private boolean moveableflag = false, moveflag = false, dragflag = false, scrollheadflag = false, overbrdflag = false;
-    private boolean fstnumflag = true, screenlandscape = false, wehcatinstalled = false, alipayinstalled = false;
+    private boolean fstnumflag = true, screenlandscape = false, wehcatinstalled = false, alipayinstalled = false, playflag = false;
     private int sideflag = 0;
     public final static int NON_SDIE = 0;
     public final static int LEFT_SDIE = 1;
@@ -116,6 +100,7 @@ public class RealService extends AccessibilityService  {
     public final static int NT_MENU = 4;
     public final static int CL_MENU = 5;
     public final static int PY_MENU = 6;
+    public final static int RC_MENU = 7;
 
     public final static int ADD_CL = 1;
     public final static int MIN_CL = 2;
@@ -129,6 +114,7 @@ public class RealService extends AccessibilityService  {
     public final static int DRG_UP = 3;
     public final static int DRG_DOWN = 4;
     public static int[] dragdirc = {GLOBAL_ACTION_BACK, GLOBAL_ACTION_HOME, GLOBAL_ACTION_NOTIFICATIONS, GLOBAL_ACTION_RECENTS, GLOBAL_ACTION_QUICK_SETTINGS};
+    //public static int[] dragdirc = {0, GLOBAL_ACTION_BACK, GLOBAL_ACTION_HOME, GLOBAL_ACTION_RECENTS, GLOBAL_ACTION_NOTIFICATIONS, GLOBAL_ACTION_QUICK_SETTINGS, GLOBAL_ACTION_POWER_DIALOG, 9};
 
     private int calsymbol = 0;
 
@@ -139,8 +125,11 @@ public class RealService extends AccessibilityService  {
     private double fstnum = 0, sndnum = 0;
     private String savenumstr = "", getnumstr = "", butstr;
 
-    private static String[] menutext_r = {"颜文字", "便签", "计算器", "收付款", "设置"};
-    private static String[] menutext_nr = {"颜文字", "便签", "计算器", "设置"};
+    //private static String[] menutext_r = {"颜文字", "便签", "计算器", "收付款", "设置"};
+    private static String[] menutext = {"颜文字", "便签", "计算器"};
+    private static String menutext_pay = "收付款";
+    private static String menutext_rec = "录音";
+    private static String menutext_set = "设置";
     private static String[] paymenutext = {"微信付款", "微信收款", "微信扫码", "支付宝付款", "支付宝收款", "支付宝扫码"};
 
     private static String[] calbuttontext = {
@@ -159,7 +148,7 @@ public class RealService extends AccessibilityService  {
     public void onServiceConnected()
     {
         //super.onCreate();
-        Log.i("TAG", "config success!");
+        //Log.i("TAG", "config success!");
         /**/
         AccessibilityServiceInfo accessibilityServiceInfo = new AccessibilityServiceInfo();
         accessibilityServiceInfo.packageNames = new String[]{getPackageName()};
@@ -231,15 +220,6 @@ public class RealService extends AccessibilityService  {
                 return false;
             }
         });
-/*
-        kaobackBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                savepref();
-                //stopSelf();
-                setnormalinterface();
-            }
-        });*/
 
         kaolistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -309,7 +289,7 @@ public class RealService extends AccessibilityService  {
         menumoveBtn = (Button) wmlayout.findViewById(R.id.menumoveBtn);
         //menubackBtn = (Button) wmlayout.findViewById(R.id.menubackBtn);
 
-        arrayAdapter = new ArrayAdapter<>(this, R.layout.service_item, getmenulist(rootflag));
+        arrayAdapter = new ArrayAdapter<>(this, R.layout.service_item, getmenulist(rootflag, recflag));
         menulistView.setAdapter(arrayAdapter);
 
         menumoveBtn.setOnTouchListener(new View.OnTouchListener()
@@ -332,36 +312,33 @@ public class RealService extends AccessibilityService  {
         menulistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                switch (position) {
-                    case 0: {
+
+                //Log.e("LST", arrayAdapter.getItem(position).toString());
+                switch (parent.getItemAtPosition(position).toString()) {
+                    case "颜文字": {
                         setkaomojiinterface();
                     }
                     break;
-                    case 1: {
+                    case "便签": {
                         setnoteinterface();
                     }
                     break;
-                    case 2: {
+                    case "计算器": {
                         setcalinterface();
                     }
                     break;
-                    case 3: {
-                        if (rootflag) {
-                            setpayinterface();
-                        }
-                        else {
-                            Intent intent = new Intent(RealService.this, BlankActivity.class);
-                            startActivity(intent);
-                        }
+                    case "支付": {
+                        setpayinterface();
                     }
                     break;
-                    case 4: {
-                        if (rootflag) {
-                            Intent intent = new Intent(RealService.this, BlankActivity.class);
-                            startService(intent);
-                        }
+                    case "设置": {
+                        Intent intent = new Intent(RealService.this, BlankActivity.class);
+                        startActivity(intent);
                     }
                     break;
+                    case "录音": {
+                        setrecordinterface();
+                    }
                     default: {
                     }
                 }
@@ -732,6 +709,70 @@ public class RealService extends AccessibilityService  {
             }
         });
 
+        //record interface
+        reclayout = (LinearLayout) inflater.inflate(R.layout.service_rec, reclayout, true);
+        recpsBtn = (Button) reclayout.findViewById(R.id.recpsBtn);
+        recbackBtn = (Button) reclayout.findViewById(R.id.recbackBtn);
+        recmoveBtn = (Button) reclayout.findViewById(R.id.recmoveBtn);
+        recnametextView = (TextView) reclayout.findViewById(R.id.recnametextView);
+        rectimetextView = (TextView) reclayout.findViewById(R.id.rectimetextView);
+
+        recnametextView.setText("");
+        rectimetextView.setText("");
+
+        recmoveBtn.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                wmguesture(event, RC_MENU);
+                return false;
+            }
+        });
+
+        recbackBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setnormalinterface();
+            }
+        });
+
+        recpsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playflag = !playflag;
+                if (playflag) {
+                    recpsBtn.setBackgroundResource(R.mipmap.stop);
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+                    String dt = simpleDateFormat.format(new java.util.Date());
+                    recnametextView.setText(dt);
+                    mediaRecorder = new MediaRecorder();
+                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                    recfile = new File(Environment.getExternalStorageDirectory(), dt + ".3gp");
+                    mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                    mediaRecorder.setOutputFile(recfile.getAbsolutePath());
+                    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+                    try {
+                        mediaRecorder.prepare();
+                        mediaRecorder.start();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }/**/
+                    //mediaRecorder.start();
+                }
+                else {
+                    recpsBtn.setBackgroundResource(R.mipmap.play);
+                    recnametextView.setText("");
+
+                    mediaRecorder.stop();
+                    //mediaRecorder.release();
+                    //mediaRecorder = null;
+                }
+            }
+        });
+
+
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -837,6 +878,10 @@ public class RealService extends AccessibilityService  {
                 touchBtn = paymoveBtn;
             }
             break;
+            case RC_MENU: {
+                touchBtn = recmoveBtn;
+            }
+            break;
             default: {
             }
         }
@@ -928,13 +973,21 @@ public class RealService extends AccessibilityService  {
                     if (dragdirc[gstdrag] == 0) {
                         setoriinterface();
                     }
-                   else {
+                    else if (dragdirc[gstdrag] == -1)
+                    {
+                        ;
+                    }
+                    else {
                         this.performGlobalAction(dragdirc[gstdrag]);
-                   }
+                    }
                 }
                 else if (!moveflag && (itfc == HD_MENU)) {
                     if (dragdirc[0] == 0) {
                         setoriinterface();
+                    }
+                    else if (dragdirc[0] == -1)
+                    {
+                        ;
                     }
                     else {
                         this.performGlobalAction(dragdirc[gstdrag]);
@@ -1078,6 +1131,7 @@ public class RealService extends AccessibilityService  {
         editor.putBoolean("magsetting", magflag);
         editor.putBoolean("rootsetting", rootflag);
         editor.putBoolean("wmsetting", wmflag);
+        editor.putBoolean("recsetting", recflag);
         editor.putBoolean("nonvirgin", true);
         editor.putInt("gstclick", dragdirc[DRG_CLICK]);
         editor.putInt("gstleft", dragdirc[DRG_LEFT]);
@@ -1145,8 +1199,7 @@ public class RealService extends AccessibilityService  {
             else if (wmParams.y < 0) {
                 wmParams.y  = 0;
             }
-
-            Log.e("pos", "x"+overbrdx+"///y"+overbrdy+"///flag"+overbrdflag);
+            //Log.e("pos", "x"+overbrdx+"///y"+overbrdy+"///flag"+overbrdflag);
         }
 
         mWindowManager.addView(prstlayout, wmParams);
@@ -1156,7 +1209,7 @@ public class RealService extends AccessibilityService  {
     }
 
     private void setnormalinterface() {
-        arrayAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.service_item, getmenulist(rootflag));
+        arrayAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.service_item, getmenulist(rootflag, recflag));
         menulistView.setAdapter(arrayAdapter);
         setlocation(108, 276);
         updatelayout(wmlayout);
@@ -1199,6 +1252,13 @@ public class RealService extends AccessibilityService  {
         paylistView.setAdapter(payarrayAdapter);
         updatelayout(paylayout);
         paymoveBtn.setText(btykao_expd[curPower]);
+    }
+
+    private void setrecordinterface() {
+        hideflag = false;
+        setlocation(108, 276);
+        updatelayout(reclayout);
+        recmoveBtn.setText(btykao_expd[curPower]);
     }
 
     private void calculator(int cs) {
@@ -1353,12 +1413,22 @@ public class RealService extends AccessibilityService  {
         }
     }
 
-    private List<String> getmenulist(boolean rf) {
+    private List<String> getmenulist(boolean rootf, boolean recf) {
         List<String> mdata = new ArrayList<>();
-        boolean sts = (rf)? Collections.addAll(mdata, menutext_r): Collections.addAll(mdata, menutext_nr);
+        //boolean sts = (rf)? Collections.addAll(mdata, menutext_r): Collections.addAll(mdata, menutext_nr);
+        boolean sts = Collections.addAll(mdata, menutext);
         if (!sts) {
             mdata.add(getResources().getString(R.string.error));
         }
+
+        if (rootf) {
+            mdata.add(menutext_pay);
+        }
+        if (recf) {
+            mdata.add(menutext_rec);
+        }
+        mdata.add(menutext_set);
+
         return mdata;
     }
 

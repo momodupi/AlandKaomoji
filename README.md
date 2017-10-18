@@ -51,3 +51,5 @@ Due to the API level and minimizing the size of apk, Alandkaomoji only supports 
 1. Add guesture setting</br>
 ### 2017.9.17
 1. Update grade</br>
+### 2017.10.18
+1. Edit setting menu</br>

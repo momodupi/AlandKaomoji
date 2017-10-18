@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:minHeight="36dp"
     android:gravity="center_vertical"
-    android:paddingLeft="6dp"
+    android:paddingStart="6dp"
+    android:paddingEnd="6dp"
     android:textColor="#eeeeee">
 
 </TextView>
