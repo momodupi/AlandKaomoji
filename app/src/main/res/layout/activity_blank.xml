@@ -58,6 +58,27 @@
         android:orientation="horizontal"
         android:layout_below="@+id/nvswhlinearLayout"
         android:layout_alignParentStart="true"
+        android:id="@+id/recswhlinearLayout">
+
+        <Switch
+            android:id="@+id/recswitch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center_vertical"
+            android:layout_margin="20dp"
+            android:text="@string/recsetting"
+            android:textSize="18sp"
+            android:textColor="#eeeeee" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:layout_below="@+id/recswhlinearLayout"
+        android:layout_alignParentStart="true"
         android:id="@+id/rtswhlinearLayout">
 
         <Switch
@@ -133,7 +154,7 @@
         android:id="@+id/gstsetlinearLayout">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical">
@@ -145,7 +166,6 @@
                 android:layout_gravity="start"
                 android:gravity="center_vertical"
                 android:layout_marginStart="20dp"
-                android:layout_weight="1"
                 android:text="@string/gstsetting"
                 android:textSize="18sp"
                 android:textColor="#eeeeee" />
@@ -153,7 +173,6 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="32dp"
-                android:layout_weight="1"
                 android:orientation="horizontal">
 
                 <Spinner
@@ -184,7 +203,6 @@
 
     </LinearLayout>
 
-
     <TextView
         android:text="@string/brife"
         android:layout_width="match_parent"
@@ -195,6 +213,5 @@
         android:textSize="12sp"
         android:textColor="#eeeeee"
         android:gravity="bottom" />
-
 
 </RelativeLayout>

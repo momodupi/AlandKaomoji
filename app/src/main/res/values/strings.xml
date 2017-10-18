@@ -31,6 +31,8 @@
 
     <string name="navsetting">导航栏</string>
 
+    <string name="recsetting">通话录音</string>
+
     <string name="transsetting">透明度</string>
 
     <string name="magsetting">磁吸模式</string>
@@ -55,6 +57,7 @@
         <item>下拉通知栏</item>
         <item>快捷设置</item>
         <item>电源菜单</item>
+        <item>无</item>
     </string-array>
 
     <string name="noapp">无应用支持</string>

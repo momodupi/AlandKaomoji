@@ -21,7 +21,8 @@
             android:layout_weight="1"
             android:background="#505050"
             android:text=""
-            android:textColor="#eeeeee" />
+            android:textColor="#eeeeee"
+            style="?android:buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/paybackBtn"
@@ -29,7 +30,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@mipmap/back"
-            android:textColor="#eeeeee" />
+            android:textColor="#eeeeee"
+            style="?android:buttonBarButtonStyle"/>
     </LinearLayout>
 
     <ListView

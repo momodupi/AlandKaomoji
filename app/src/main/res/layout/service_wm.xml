@@ -20,10 +20,11 @@
             android:id="@+id/menumoveBtn"
             android:layout_height="match_parent"
             android:background="#505050"
-            android:layout_width="72dp"
+            android:layout_width="0dp"
             android:layout_weight="1"
             android:textColor="#eeeeee"
-            android:textAllCaps="false"/>
+            android:textAllCaps="false"
+            style="?android:buttonBarButtonStyle"/>
 
     </LinearLayout>
 

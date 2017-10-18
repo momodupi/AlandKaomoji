@@ -22,7 +22,8 @@
             android:layout_weight="1"
             android:background="#505050"
             android:text=""
-            android:textColor="#eeeeee" />
+            android:textColor="#eeeeee"
+            style="?android:buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/noteclearBtn"
@@ -30,7 +31,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@mipmap/clear"
-            android:textColor="#eeeeee" />
+            android:textColor="#eeeeee"
+            style="?android:buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/notebackBtn"
@@ -38,7 +40,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@mipmap/back"
-            android:textColor="#eeeeee" />
+            android:textColor="#eeeeee"
+            style="?android:buttonBarButtonStyle"/>
 
     </LinearLayout>
 
@@ -48,7 +51,8 @@
         android:layout_height="match_parent"
         android:gravity="top"
         android:ems="10"
-        android:textSize="14dp"
+        android:textSize="14sp"
+        android:textColor="#eeeeee"
         android:inputType="textMultiLine" />
 
 

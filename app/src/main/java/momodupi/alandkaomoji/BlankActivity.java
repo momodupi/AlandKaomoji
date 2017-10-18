@@ -1,47 +1,43 @@
 package momodupi.alandkaomoji;
 
-import android.accessibilityservice.AccessibilityServiceInfo;
+
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
-import android.view.accessibility.AccessibilityManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
-import android.widget.ExpandableListView;
-import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
 
 import java.io.DataOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
+import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK;
+import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_HOME;
+import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS;
+import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_POWER_DIALOG;
+import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS;
+import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_RECENTS;
 
 
 public class BlankActivity extends Activity {
 
     SeekBar transseekBar;
-    Switch wmswitch, rootswitch, magswitch, navswitch;
+    Switch wmswitch, rootswitch, magswitch, navswitch, recswitch;
     Spinner gstspineer, gstfunspinner;
-    private boolean navflag = true;
+
+    boolean navflag = true;
 
     //private boolean magflag = false, rootflag = false;
     //private float transsetting = 1;
@@ -57,7 +53,7 @@ public class BlankActivity extends Activity {
             }
         }
 
-        final SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
+        SharedPreferences preferences = getSharedPreferences("kaomojipref", MODE_PRIVATE);
         if (!preferences.getBoolean("nonvirgin", false)) {
             SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
 
@@ -73,6 +69,7 @@ public class BlankActivity extends Activity {
             editor.putFloat("transsetting", 50);
             editor.putBoolean("magsetting", false);
             editor.putBoolean("rootsetting", false);
+            editor.putBoolean("recsetting", false);
             editor.putBoolean("wmsetting", false);
             editor.putBoolean("navsetting", true);
             editor.putInt("gstclick", RealService.dragdirc[RealService.DRG_CLICK]);
@@ -88,6 +85,7 @@ public class BlankActivity extends Activity {
 
         RealService.rootflag = preferences.getBoolean("rootsetting", false);
         RealService.magflag = preferences.getBoolean("magsetting", false);
+        RealService.recflag = preferences.getBoolean("recsetting", false);
         RealService.transsetting = preferences.getFloat("transsetting", 50);
         navflag = preferences.getBoolean("navsetting", false);
         RealService.dragdirc[RealService.DRG_CLICK] = preferences.getInt("gstclick", 0);
@@ -101,6 +99,7 @@ public class BlankActivity extends Activity {
         rootswitch = (Switch) findViewById(R.id.rootswitch);
         magswitch = (Switch) findViewById(R.id.magswitch);
         navswitch = (Switch) findViewById(R.id.navswitch);
+        recswitch = (Switch) findViewById(R.id.recswitch);
         transseekBar = (SeekBar) findViewById(R.id.transseekBar);
         gstspineer = (Spinner) findViewById(R.id.gstspinner);
         gstfunspinner =(Spinner) findViewById(R.id.gstfuncspinner);
@@ -109,9 +108,10 @@ public class BlankActivity extends Activity {
         transseekBar.setProgress(50);
 
         transseekBar.setProgress((int) RealService.transsetting);
+        recswitch.setChecked(RealService.recflag);
         magswitch.setChecked(RealService.magflag);
         rootswitch.setChecked(RealService.rootflag);
-        wmswitch.setChecked(RealService.wmflag && isAccessibilitySettingsOn(getApplicationContext()));
+        wmswitch.setChecked(RealService.wmflag);
         navswitch.setChecked(navflag);
 
         wmswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -120,16 +120,17 @@ public class BlankActivity extends Activity {
                 //SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
                 //editor.putBoolean("wmsetting", isChecked);
                 //editor.apply();
-                RealService.wmflag = isChecked && isAccessibilitySettingsOn(getApplicationContext());
+                //RealService.wmflag = isChecked && isAccessibilitySettingsOn(getApplicationContext());
                 if (isChecked) {
                     if (Build.VERSION.SDK_INT >= 21) {
-                        if (!isAccessibilitySettingsOn(getApplicationContext())) {
+                        if (!isAccessibilitySettingsOn(getApplication())) {
                             showacsblyprmsdialog();
                             if (Build.VERSION.SDK_INT >= 23) {
                                 if (!Settings.canDrawOverlays(getApplication())) {
                                     showovlyprmsdialog();
                                 }
                             }
+                            RealService.wmflag = true;
                         }
                         else {
                             if (RealService.hideflag) {
@@ -140,7 +141,7 @@ public class BlankActivity extends Activity {
                                 RealService.mWindowManager.addView(RealService.prstlayout, RealService.wmParams);
                                 RealService.mWindowManager.updateViewLayout(RealService.prstlayout, RealService.wmParams);
                             }/**/
-
+                            RealService.wmflag = true;
                         }
                     }
                 }
@@ -153,9 +154,24 @@ public class BlankActivity extends Activity {
                             else {
                                 RealService.mWindowManager.removeView(RealService.prstlayout);
                             }/**/
+                            RealService.wmflag = false;
                         }
                     }
                 }
+                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
+                editor.putBoolean("wmsetting", RealService.wmflag);
+                editor.apply();
+                wmswitch.setChecked(RealService.wmflag);
+            }
+        });
+
+        recswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                RealService.recflag = isChecked;
+                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
+                editor.putBoolean("recsetting", isChecked);
+                editor.apply();
             }
         });
 
@@ -164,7 +180,6 @@ public class BlankActivity extends Activity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 RealService.transsetting = progress;
                 if (isAccessibilitySettingsOn(getApplicationContext())) {
-
                     if (RealService.hideflag) {
                         RealService.hidelayout.setAlpha(RealService.transsetting / 100);
                         RealService.mWindowManager.updateViewLayout(RealService.hidelayout, RealService.wmParams);
@@ -186,10 +201,10 @@ public class BlankActivity extends Activity {
         magswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
-                editor.putBoolean("magsetting", isChecked);
-                editor.apply();
                 RealService.magflag = isChecked;
+                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
+                editor.putBoolean("magsetting", RealService.magflag);
+                editor.apply();
             }
         });
 
@@ -217,7 +232,9 @@ public class BlankActivity extends Activity {
                     rootswitch.setChecked(false);
                     RealService.rootflag = false;
                 }
-
+                SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
+                editor.putBoolean("rootsetting", RealService.rootflag);
+                editor.apply();
             }
         });
 
@@ -237,7 +254,9 @@ public class BlankActivity extends Activity {
         gstfunspinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                RealService.dragdirc[gstspineer.getSelectedItemPosition()] = position;
+                int[] gst = {0, GLOBAL_ACTION_BACK, GLOBAL_ACTION_HOME, GLOBAL_ACTION_RECENTS, GLOBAL_ACTION_NOTIFICATIONS, GLOBAL_ACTION_QUICK_SETTINGS, GLOBAL_ACTION_POWER_DIALOG, -1};
+                //RealService.dragdirc[gstspineer.getSelectedItemPosition()] = position;
+                RealService.dragdirc[gstspineer.getSelectedItemPosition()] = gst[position];
                 SharedPreferences.Editor editor = getSharedPreferences("kaomojipref", MODE_PRIVATE).edit();
                 editor.putInt("gstclick", RealService.dragdirc[RealService.DRG_CLICK]);
                 editor.putInt("gstleft", RealService.dragdirc[RealService.DRG_LEFT]);
@@ -274,7 +293,7 @@ public class BlankActivity extends Activity {
     }
 
     private boolean isAccessibilitySettingsOn(Context mContext) {
-        int accessibilityEnabled = 0;
+        int accessibilityEnabled;
         final String service = getPackageName() + "/" +RealService.class.getCanonicalName();
 
         try {
@@ -302,7 +321,7 @@ public class BlankActivity extends Activity {
         }
         return false;
     }
-/**/
+
     private void showovlyprmsdialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(BlankActivity.this);
         builder.setTitle(R.string.rqsttitle);
@@ -328,7 +347,7 @@ public class BlankActivity extends Activity {
             }
         });
         AlertDialog dialog = builder.create();
-        dialog.show();/**/
+        dialog.show();
     }
 
     private void showacsblyprmsdialog() {
@@ -355,7 +374,7 @@ public class BlankActivity extends Activity {
             }
         });
         AlertDialog dialog = builder.create();
-        dialog.show();/**/
+        dialog.show();
     }
 
     public int sucmd(String cmd) {
