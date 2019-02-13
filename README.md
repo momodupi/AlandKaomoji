@@ -1,4 +1,4 @@
-# AlanKaomoji (＾o＾)ﾉ
+# AlandKaomoji (＾o＾)ﾉ
 This is a small widget for using A land kaomoji.</br>
 
 ## Brife
