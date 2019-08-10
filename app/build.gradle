@@ -3,15 +3,16 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
     }
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 29
+    //buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "momodupi.alandkaomoji"
         minSdkVersion 21
-        targetSdkVersion 25
+        targetSdkVersion 29
         versionCode 3
-        versionName '3.4'
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionName '3.5'
+        //testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -23,7 +24,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    //compile 'com.android.support:appcompat-v7:25.2.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'junit:junit:4.12'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }

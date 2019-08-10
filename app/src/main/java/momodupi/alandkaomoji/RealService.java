@@ -126,11 +126,23 @@ public class RealService extends AccessibilityService  {
     private String savenumstr = "", getnumstr = "", butstr;
 
     //private static String[] menutext_r = {"颜文字", "便签", "计算器", "收付款", "设置"};
-    private static String[] menutext = {"颜文字", "便签", "计算器"};
-    private static String menutext_pay = "收付款";
-    private static String menutext_rec = "录音";
-    private static String menutext_set = "设置";
-    private static String[] paymenutext = {"微信付款", "微信收款", "微信扫码", "支付宝付款", "支付宝收款", "支付宝扫码"};
+    //private static String[] menutext = {"颜文字", "便签", "计算器"};
+    private String[] menutext = {
+            this.getResources().getString(R.string.kao),
+            this.getResources().getString(R.string.notes),
+            this.getResources().getString(R.string.calculator)};
+
+    private String menutext_pay = this.getResources().getString(R.string.payment);
+    private String menutext_rec = this.getResources().getString(R.string.record);
+    private String menutext_set = this.getResources().getString(R.string.setting);
+
+    private String[] paymenutext = {
+            this.getResources().getString(R.string.wpay),
+            this.getResources().getString(R.string.wrec),
+            this.getResources().getString(R.string.wscan),
+            this.getResources().getString(R.string.apay),
+            this.getResources().getString(R.string.arec),
+            this.getResources().getString(R.string.ascan),};
 
     private static String[] calbuttontext = {
             "1/x", "√", "x^y", "<",

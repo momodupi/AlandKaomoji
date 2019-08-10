@@ -1,91 +1,91 @@
 <resources>
-    <string name="app_name">Alandkaomoji</string>
+    <string name="app_name">A岛颜文字</string>
 
-    <string name="rqsttitle">I need permissionΣ( ﾟдﾟ)</string>
+    <string name="rqsttitle">需要权限Σ( ﾟдﾟ)</string>
 
-    <string name="ovlyrqsttext">I need overlapping permission(=ﾟωﾟ)=</string>
+    <string name="ovlyrqsttext">请设置允许在其他应用的上层显示(=ﾟωﾟ)=</string>
 
-    <string name="acsblyrqsttext">I need accessibility permission(=ﾟωﾟ)=</string>
+    <string name="acsblyrqsttext">请设置辅助功能(=ﾟωﾟ)=</string>
 
-    <string name="acsblypmttext">Yes!ﾟ ∀ﾟ)ノ</string>
+    <string name="acsblypmttext">赋予权限吧ﾟ ∀ﾟ)ノ</string>
 
-    <string name="acsblyrfstext">No!ﾟ ∀ﾟ)ノ</string>
+    <string name="acsblyrfstext">取消权限吧ﾟ ∀ﾟ)ノ</string>
 
-    <string name="rootpmstext">☆Root☆Complete☆</string>
+    <string name="rootpmstext">获☆取☆root☆大☆成☆功</string>
 
-    <string name="rootrfstext">☆Root☆fail☆</string>
+    <string name="rootrfstext">获☆取☆root☆大☆失☆败</string>
 
-    <string name="rqstyes">Sure!(＾o＾)ﾉ</string>
+    <string name="rqstyes">前去设置(＾o＾)ﾉ</string>
 
-    <string name="rqstno">No!(╬ﾟдﾟ)</string>
+    <string name="rqstno">不设咋地(╬ﾟдﾟ)</string>
 
-    <string name="rqstrfstoast">Hummmm( ´_ゝ`)</string>
+    <string name="rqstrfstoast">那就算了吧( ´_ゝ`)</string>
 
-    <string name="nonvgn">No more TOUCH!(〃∀〃)</string>
+    <string name="nonvgn">别再点人家啦(〃∀〃)</string>
 
-    <string name="servicesetting">Background Program</string>
+    <string name="servicesetting">后台</string>
 
     <string name="brife">(σﾟ∀ﾟ)σ\nPowered by momodupi</string>
 
-    <string name="wmsetting">Floating Window</string>
+    <string name="wmsetting">悬浮窗</string>
 
-    <string name="navsetting">Navi Bar</string>
+    <string name="navsetting">导航栏</string>
 
-    <string name="recsetting">Recording</string>
+    <string name="recsetting">通话录音</string>
 
-    <string name="transsetting">Transparent</string>
+    <string name="transsetting">透明度</string>
 
-    <string name="magsetting">Magnification</string>
+    <string name="magsetting">磁吸模式</string>
 
-    <string name="rootsetting">Root</string>
+    <string name="rootsetting">root模式</string>
 
-    <string name="gstsetting">Gestures</string>
+    <string name="gstsetting">手势设置</string>
 
 
-    <string name="kao">Kaomoji</string>
+    <string name="kao">颜文字</string>
 
-    <string name="notes">Notes</string>
+    <string name="notes">便签</string>
 
-    <string name="calculator">Calculator</string>
+    <string name="calculator">计算器</string>
 
-    <string name="payment">Payment</string>
+    <string name="payment">收付款</string>
 
-    <string name="record">Record</string>
+    <string name="record">录音</string>
 
-    <string name="setting">Setting</string>
+    <string name="setting">设置</string>
 
-    <string name="wpay">We Pay</string>
-    <string name="wrec">We Receive</string>
-    <string name="wscan">We Scan</string>
+    <string name="wpay">微信付款</string>
+    <string name="wrec">微信收款</string>
+    <string name="wscan">微信扫码</string>
 
-    <string name="apay">Ali Pay</string>
-    <string name="arec">Ali Receive</string>
-    <string name="ascan">Ali Scan</string>
+    <string name="apay">支付宝付款</string>
+    <string name="arec">支付宝收款</string>
+    <string name="ascan">支付宝扫码</string>
 
     <string-array name="gstlist">
-        <item>Click</item>
-        <item>Left</item>
-        <item>Right</item>
-        <item>Up</item>
-        <item>Down</item>
+        <item>点击</item>
+        <item>左滑</item>
+        <item>右滑</item>
+        <item>上滑</item>
+        <item>下滑</item>
     </string-array>
 
     <string-array name="gstfunclist">
-        <item>Kaomoji</item>
-        <item>Back</item>
-        <item>Home</item>
-        <item>Recents</item>
-        <item>Notification</item>
-        <item>Quick Setting</item>
-        <item>Power Menu</item>
-        <item>Null</item>
+        <item>A岛颜文字</item>
+        <item>返回上一级菜单</item>
+        <item>返回主页</item>
+        <item>显示最近应用</item>
+        <item>下拉通知栏</item>
+        <item>快捷设置</item>
+        <item>电源菜单</item>
+        <item>无</item>
     </string-array>
 
-    <string name="noapp">No app installed</string>
+    <string name="noapp">无应用支持</string>
 
     <string name="error">error</string>
 
-    <string name="accdescp">Please use gestures to operate(ゝ∀･)</string>
+    <string name="accdescp">使用A岛颜文字可以模拟导航栏操作(ゝ∀･)</string>
 
     <string-array name="kaomoji">
         <item>|∀ﾟ</item>
