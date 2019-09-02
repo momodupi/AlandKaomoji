@@ -4,7 +4,6 @@
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagDefault"
     android:canRetrieveWindowContent="true"
-    android:notificationTimeout="100"
     android:packageNames="momodupi.alandkaomoji"
     android:description="@string/accdescp">
 </accessibility-service>

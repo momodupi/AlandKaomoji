@@ -159,14 +159,14 @@ public class RealService extends AccessibilityService  {
     @Override
     public void onServiceConnected()
     {
-        //super.onCreate();
-        //Log.i("TAG", "config success!");
+        super.onCreate();
+        Log.d("TAG", "config success!");
         /**/
         AccessibilityServiceInfo accessibilityServiceInfo = new AccessibilityServiceInfo();
         accessibilityServiceInfo.packageNames = new String[]{getPackageName()};
         accessibilityServiceInfo.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;
-        accessibilityServiceInfo.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
-        accessibilityServiceInfo.notificationTimeout = 100;
+        accessibilityServiceInfo.feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK;
+        //accessibilityServiceInfo.notificationTimeout = 100;
         setServiceInfo(accessibilityServiceInfo);
 
         readpref();

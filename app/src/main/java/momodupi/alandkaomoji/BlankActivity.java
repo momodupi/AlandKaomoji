@@ -152,7 +152,9 @@ public class BlankActivity extends Activity {
                                 RealService.mWindowManager.removeView(RealService.hidelayout);
                             }
                             else {
-                                RealService.mWindowManager.removeView(RealService.prstlayout);
+                                if (RealService.hidelayout != null) {
+                                    RealService.mWindowManager.removeView(RealService.prstlayout);
+                                }
                             }/**/
                             RealService.wmflag = false;
                         }
